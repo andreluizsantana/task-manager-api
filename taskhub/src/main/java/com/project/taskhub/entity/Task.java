@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 import com.project.taskhub.entity.enums.StatusTask;
+import com.project.taskhub.entity.enums.TipoRecorrencia;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -12,6 +13,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
@@ -41,12 +44,47 @@ public class Task extends TaskBase implements Serializable {
     @Column(nullable = false)
     private StatusTask status = StatusTask.PENDENTE;
 
-    public Task(String titulo, String descricao) {
+    @Column(nullable = true, length = 50)
+    @Enumerated(EnumType.STRING)
+    private TipoRecorrencia tipoRecorrencia;
+
+    private Integer ocorrencia;
+
+    @ManyToOne
+    @JoinColumn(name = "task_group_id", nullable = true)
+    private TaskGroup taskGroup;
+
+    public Task(@NotBlank(message = "O título é obrigatório") @Size(max = 120, message = "O título deve ter no máximo 120 caracteres") String titulo,
+	    @NotBlank(message = "A descrição é obrigatória") String descricao) {
 	this.titulo = titulo;
 	this.descricao = descricao;
     }
 
     public Task() {
+    }
+
+    public TipoRecorrencia getTipoRecorrencia() {
+	return tipoRecorrencia;
+    }
+
+    public void setTipoRecorrencia(TipoRecorrencia tipoRecorrencia) {
+	this.tipoRecorrencia = tipoRecorrencia;
+    }
+
+    public Integer getOcorrencia() {
+	return ocorrencia;
+    }
+
+    public void setOcorrencia(Integer ocorrencia) {
+	this.ocorrencia = ocorrencia;
+    }
+
+    public TaskGroup getTaskGroup() {
+	return taskGroup;
+    }
+
+    public void setTaskGroup(TaskGroup taskGroup) {
+	this.taskGroup = taskGroup;
     }
 
     public String getTitulo() {

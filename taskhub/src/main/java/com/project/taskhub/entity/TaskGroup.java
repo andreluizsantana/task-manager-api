@@ -16,8 +16,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "taskgroup")
-public class TaskGroup implements Serializable {
-
+public class TaskGroup extends TaskBase implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
@@ -38,6 +37,14 @@ public class TaskGroup implements Serializable {
     public TaskGroup(TipoRecorrencia frequencia, Integer totalRecorrencia) {
 	this.frequencia = frequencia;
 	this.totalRecorrencia = totalRecorrencia;
+    }
+
+    public Long getId() {
+	return id;
+    }
+
+    public void setId(Long id) {
+	this.id = id;
     }
 
     public TipoRecorrencia getFrequencia() {

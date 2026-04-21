@@ -48,6 +48,7 @@ public class Task extends TaskBase implements Serializable {
     @Enumerated(EnumType.STRING)
     private TipoRecorrencia tipoRecorrencia;
 
+    // "índice" ou a posição atual para saber se esta é a tarefa nº 1... 2... 3...
     private Integer ocorrencia;
 
     @ManyToOne

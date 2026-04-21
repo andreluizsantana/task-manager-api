@@ -1,5 +1,7 @@
 package com.project.taskhub.controller;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -46,9 +48,14 @@ public class TaskController {
 	return ResponseEntity.status(HttpStatus.CREATED).body(novaTarefa);
     }
 
+    @PostMapping("/recurrent")
+    public ResponseEntity<List<TaskResponseDTO>> salvarRecorrente(@RequestBody @Valid TaskRequestDTO dto) {
+	List<TaskResponseDTO> resposta = taskservice.salvarTarefaRecorrente(dto);
+	return ResponseEntity.status(HttpStatus.CREATED).body(resposta);
+    }
+
     @PutMapping("/{id}")
-    public ResponseEntity<TaskResponseDTO> atualizarTask(@PathVariable Long id,
-	    @Valid @RequestBody TaskUpdateDTO udto) {
+    public ResponseEntity<TaskResponseDTO> atualizarTask(@PathVariable Long id, @Valid @RequestBody TaskUpdateDTO udto) {
 	TaskResponseDTO atualiza = taskservice.atualizarDados(id, udto);
 	return ResponseEntity.status(HttpStatus.OK).body(atualiza);
     }

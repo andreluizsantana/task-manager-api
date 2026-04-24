@@ -1,5 +1,6 @@
 package com.project.taskhub.service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -52,17 +53,19 @@ public class TaskService {
     public List<TaskResponseDTO> salvarTarefaRecorrente(TaskRequestDTO taskrequestdto) {
 	TipoRecorrencia tipoRecorrente = taskrequestdto.tipoRecorrencia();
 	Integer totalRecorrente = taskrequestdto.totalRecorrencia();
-	Task tarefaRecorrente;
+	Task tarefaRecorrenteTask;
 	List<Task> tarefasParaSalvar = new ArrayList<>();
 	int i;
 	if (tipoRecorrente == TipoRecorrencia.MENSAL && Objects.nonNull(totalRecorrente) && totalRecorrente > 0) {
 	    TaskGroup taskgroup = new TaskGroup(tipoRecorrente, totalRecorrente);
 	    taskgroup = taskGroupRepository.save(taskgroup);
 	    for (i = 0; i < totalRecorrente; i++) {
-		tarefaRecorrente = taskMapper.toEntity(taskrequestdto);
-		tarefaRecorrente.setTaskGroup(taskgroup);
-		tarefaRecorrente.setOcorrencia(i + 1);
-		tarefasParaSalvar.add(tarefaRecorrente);
+		LocalDate hoje = LocalDate.now();
+		tarefaRecorrenteTask = taskMapper.toEntity(taskrequestdto);
+		tarefaRecorrenteTask.setTaskGroup(taskgroup);
+		tarefaRecorrenteTask.setOcorrencia(i + 1);
+		tarefaRecorrenteTask.setDataExecucao(hoje.plusMonths(i));
+		tarefasParaSalvar.add(tarefaRecorrenteTask);
 	    }
 	} else {
 	    throw new TaskRecurrenceException("Dados de recorrência inválidos.");

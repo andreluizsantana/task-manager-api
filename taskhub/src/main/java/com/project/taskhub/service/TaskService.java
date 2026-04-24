@@ -37,10 +37,38 @@ public class TaskService {
     private final TaskRepository taskRepository;
     private final TaskGroupRepository taskGroupRepository;
 
+    private static final int FIRST_OCCURRENCE = 1;
+
+    // valida se é uma task recorrete
+    private void validarRecorrencia(TipoRecorrencia tipo, Integer totalRe) {
+	if (tipo != TipoRecorrencia.MENSAL || Objects.isNull(totalRe) || totalRe <= 0) {
+	    throw new TaskRecurrenceException("Dados de recorrência inválidos.");
+	}
+    }
+
+    // cria o grupo
+    private TaskGroup criarTaskGroup(TipoRecorrencia tipo, Integer totalRe) {
+	TaskGroup group = new TaskGroup(tipo, totalRe);
+	return taskGroupRepository.save(group);
+    }
+
+    // gera as recorrencias
+    private List<Task> gerarTarefasRecorrentes(TaskRequestDTO taskrequestdto, TaskGroup group, Integer totalRe) {
+	List<Task> tarefas = new ArrayList<>();
+	for (int i = 0; i < totalRe; i++) {
+	    Task tarefa = taskMapper.toEntity(taskrequestdto);
+	    tarefa.setTaskGroup(group);
+	    tarefa.setOcorrencia(i + FIRST_OCCURRENCE);
+	    tarefa.setDataExecucao(LocalDate.now().plusMonths(i));
+	    tarefas.add(tarefa);
+	}
+	return tarefas;
+    }
+
     // salvar
     public TaskResponseDTO salvarTarefa(TaskRequestDTO taskrequestdto) {
 	if (taskrequestdto.tipoRecorrencia() != null) {
-	    throw new TaskRecurrenceException("Use /api/tasks/recurrent para tarefas recorrentes");
+	    throw new TaskRecurrenceException("Use '/api/tasks/recurrent' para tarefas recorrentes.");
 	}
 	Task tarefa;
 	tarefa = taskMapper.toEntity(taskrequestdto);
@@ -51,28 +79,12 @@ public class TaskService {
     // tarefa recorrente
     @Transactional
     public List<TaskResponseDTO> salvarTarefaRecorrente(TaskRequestDTO taskrequestdto) {
-	TipoRecorrencia tipoRecorrente = taskrequestdto.tipoRecorrencia();
-	Integer totalRecorrente = taskrequestdto.totalRecorrencia();
-	Task tarefaRecorrenteTask;
-	List<Task> tarefasParaSalvar = new ArrayList<>();
-	int i;
-	if (tipoRecorrente == TipoRecorrencia.MENSAL && Objects.nonNull(totalRecorrente) && totalRecorrente > 0) {
-	    TaskGroup taskgroup = new TaskGroup(tipoRecorrente, totalRecorrente);
-	    taskgroup = taskGroupRepository.save(taskgroup);
-	    for (i = 0; i < totalRecorrente; i++) {
-		LocalDate hoje = LocalDate.now();
-		tarefaRecorrenteTask = taskMapper.toEntity(taskrequestdto);
-		tarefaRecorrenteTask.setTaskGroup(taskgroup);
-		tarefaRecorrenteTask.setOcorrencia(i + 1);
-		tarefaRecorrenteTask.setDataExecucao(hoje.plusMonths(i));
-		tarefasParaSalvar.add(tarefaRecorrenteTask);
-	    }
-	} else {
-	    throw new TaskRecurrenceException("Dados de recorrência inválidos.");
-	}
+	validarRecorrencia(taskrequestdto.tipoRecorrencia(), taskrequestdto.totalRecorrencia());
+	TaskGroup group = criarTaskGroup(taskrequestdto.tipoRecorrencia(), taskrequestdto.totalRecorrencia());
+	List<Task> tarefas = gerarTarefasRecorrentes(taskrequestdto, group, taskrequestdto.totalRecorrencia());
+	List<Task> salvas = taskRepository.saveAll(tarefas);
 
-	List<Task> paraSalvar = taskRepository.saveAll(tarefasParaSalvar);
-	return paraSalvar.stream().map(taskMapper::toDTO).toList();
+	return salvas.stream().map(taskMapper::toDTO).toList();
     }
 
     // atualizar status

@@ -1,5 +1,7 @@
 package com.project.taskhub.dto;
 
+import java.time.LocalDate;
+
 import com.project.taskhub.entity.enums.StatusTask;
 import com.project.taskhub.entity.enums.TipoRecorrencia;
 
@@ -17,7 +19,9 @@ public record TaskRequestDTO(@NotBlank(message = "O título não pode estar vazi
 
 	@Enumerated(EnumType.STRING) @Column(nullable = false) TipoRecorrencia tipoRecorrencia,
 
-	@Column(nullable = false) Integer totalRecorrencia
+	@Column(nullable = false) Integer totalRecorrencia,
+
+	LocalDate dataExecucao
 
 ) {
 }

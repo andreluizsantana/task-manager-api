@@ -1,6 +1,7 @@
 package com.project.taskhub.entity;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.Objects;
 
 import com.project.taskhub.entity.enums.StatusTask;
@@ -48,17 +49,19 @@ public class Task extends TaskBase implements Serializable {
     @Enumerated(EnumType.STRING)
     private TipoRecorrencia tipoRecorrencia;
 
-    // "índice" ou a posição atual para saber se esta é a tarefa nº 1... 2... 3...
     private Integer ocorrencia;
+
+    private LocalDate dataExecucao;
 
     @ManyToOne
     @JoinColumn(name = "task_group_id", nullable = true)
     private TaskGroup taskGroup;
 
     public Task(@NotBlank(message = "O título é obrigatório") @Size(max = 120, message = "O título deve ter no máximo 120 caracteres") String titulo,
-	    @NotBlank(message = "A descrição é obrigatória") String descricao) {
+	    @NotBlank(message = "A descrição é obrigatória") String descricao, LocalDate dataExecucao) {
 	this.titulo = titulo;
 	this.descricao = descricao;
+	this.dataExecucao = dataExecucao;
     }
 
     public Task() {
@@ -119,6 +122,14 @@ public class Task extends TaskBase implements Serializable {
 
     public void setStatus(StatusTask status) {
 	this.status = status;
+    }
+
+    public LocalDate getDataExecucao() {
+	return dataExecucao;
+    }
+
+    public void setDataExecucao(LocalDate dataExecucao) {
+	this.dataExecucao = dataExecucao;
     }
 
     @Override

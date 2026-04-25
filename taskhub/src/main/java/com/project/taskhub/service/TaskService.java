@@ -45,8 +45,12 @@ public class TaskService {
 
     // Valida se é uma task recorrete
     private void validarRecorrencia(TipoRecorrencia tipo, Integer totalRe) {
+	int qtdeMaximaRec = 36;
 	if (tipo != TipoRecorrencia.MENSAL || Objects.isNull(totalRe) || totalRe <= 0) {
 	    throw new TaskRecurrenceException("Dados de recorrência inválidos.");
+	}
+	if (totalRe > qtdeMaximaRec) {
+	    throw new TaskRecurrenceException("Total de recorrência não pode exceder " + qtdeMaximaRec + " tarefas.");
 	}
     }
 

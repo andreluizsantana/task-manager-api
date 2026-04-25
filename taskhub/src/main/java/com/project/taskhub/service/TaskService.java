@@ -123,7 +123,12 @@ public class TaskService {
 	LocalDate hoje = LocalDate.now();
 	List<Task> tarefasVencidas = taskRepository.findByStatusAndDataExecucaoBefore(StatusTask.PENDENTE, hoje);
 	tarefasVencidas.stream().forEach(tarefa -> tarefa.setStatus(StatusTask.NAO_EXECUTADA));
-	taskRepository.saveAll(tarefasVencidas);
-	log.info("Fim da terafa.. {}", LocalDateTime.now());
+	try {
+	    taskRepository.saveAll(tarefasVencidas);
+	    log.info("Atualizadas {} tarefas vencidas", tarefasVencidas.size());
+	} catch (Exception e) {
+	    log.error("Erro ao atualizar tarefas vencidas", e);
+	}
+	log.info("Fim da tarefa... {}", LocalDateTime.now());
     }
 }

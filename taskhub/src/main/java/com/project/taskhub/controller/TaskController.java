@@ -31,6 +31,12 @@ public class TaskController {
 	this.taskservice = taskservice;
     }
 
+    /**
+     * Lista todas as tarefas com paginação
+     * 
+     * @param pageable paginação com o limite padrão definido de 100 registros por página (configurável em application.properties)
+     * @return lista com todos os registros em TaskResponseDTO paginada
+     */
     @GetMapping
     public Page<TaskResponseDTO> listarTarefas(Pageable pageable) {
 	return taskservice.listarTarefas(pageable);

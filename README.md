@@ -1,331 +1,590 @@
-# task-manager-api
+# TaskHub API
 
-API REST de gerenciamento de tarefas desenvolvida com Spring Boot, JPA, PostgreSQL e MapStruct. CRUD completo, paginação, filtro por status, tarefas recorrentes com agendamento automático e tratamento de erros centralizado.
+Uma REST API robusta para gerenciamento de tarefas com suporte a tarefas recorrentes, agendamento automático e autenticação JWT.
 
-## Tecnologias
+**Stack:** Java 17 • Spring Boot 3.4.4 • PostgreSQL • JPA/Hibernate • MapStruct • Spring Security • JWT
 
-- Java 17
-- Spring Boot 3.4.4
-- Spring Data JPA / Hibernate
-- PostgreSQL
-- MapStruct 1.6.3
-- Lombok
-- Bean Validation
-- Spring Scheduling
+## 🚀 Funcionalidades
 
-## Funcionalidades
+### Tarefas
+- ✅ CRUD completo de tarefas
+- ✅ Tarefas simples e recorrentes (mensais)
+- ✅ Atualização automática de status (tarefas vencidas → NÃO_EXECUTADA)
+- ✅ Paginação de resultados
+- ✅ Validações com Bean Validation
 
-- [x] CRUD completo de tarefas
-- [x] Paginação e ordenação
-- [x] Filtro por status
-- [x] Tratamento de erros centralizado com `GlobalExceptionHandler`
-- [x] Validação de dados de entrada com `@Valid`
-- [x] Tarefas recorrentes (MENSAL com múltiplas ocorrências)
-- [x] Tarefas únicas (UNICA)
-- [x] Data de execução com cálculo automático para recorrências
-- [x] Agendamento automático para marcar tarefas vencidas como NAO_EXECUTADA
-- [x] Relacionamento entre Task e TaskGroup
-- [x] Enumerações para Status e Tipo de Recorrência
-- [ ] Autenticação e autorização com Spring Security
-- [ ] Testes unitários e integração completos
-- [ ] Documentação com Swagger/OpenAPI
+### Segurança
+- ✅ Autenticação com JWT
+- ✅ Registro de novos usuários (com BCrypt)
+- ✅ Login com geração de token
+- ✅ Proteção de endpoints autenticados
 
-## Estrutura do projeto
+### Arquitetura
+- ✅ Padrão de camadas (Controller → Service → Repository)
+- ✅ DTOs com MapStruct
+- ✅ Exception handling global com `@RestControllerAdvice`
+- ✅ Transações gerenciadas
+- ✅ Logging com Log4j2
 
-```
-src/main/java/com/project/taskhub/
-├── controller/          # Endpoints REST
-├── service/             # Regras de negócio
-├── repository/          # Acesso ao banco de dados
-├── entity/              # Entidades JPA
-│   ├── Task.java
-│   ├── TaskBase.java    # Superclasse com timestamps
-│   ├── TaskGroup.java
-│   └── enums/
-│       ├── StatusTask.java
-│       └── TipoRecorrencia.java
-├── dto/                 # DTOs de entrada e saída
-│   ├── TaskRequestDTO.java
-│   ├── TaskResponseDTO.java
-│   ├── TaskUpdateDTO.java
-│   ├── TaskGroupResponseDTO.java
-│   ├── TaskMapper.java
-│   └── TaskGroupMapper.java
-└── exceptions/          # Exceções customizadas
-    ├── TaskNotFoundException.java
-    ├── TaskRecurrenceException.java
-    └── GlobalExceptionHandler.java
+## 📋 Pré-requisitos
+
+- **Java 17+** (testado com JDK 21)
+- **PostgreSQL 12+**
+- **Maven 3.8+**
+- **Git**
+
+## ⚙️ Instalação e Configuração
+
+### 1. Clone o repositório
+
+```bash
+git clone https://github.com/andreluizsantana/task-manager-api.git
+cd task-manager-api
 ```
 
-## Endpoints
+### 2. Configure o banco de dados
 
-| Método | Rota | Descrição |
-|---|---|---|
-| `POST` | `/api/tasks` | Criar tarefa única |
-| `GET` | `/api/tasks` | Listar tarefas (paginado) |
-| `GET` | `/api/tasks/{id}` | Buscar tarefa por ID |
-| `PUT` | `/api/tasks/{id}` | Atualizar tarefa |
-| `DELETE` | `/api/tasks/{id}` | Deletar tarefa |
-| `POST` | `/api/tasks/recurrent` | Criar tarefas recorrentes (MENSAL) |
+Crie um banco PostgreSQL:
 
-## Status de uma tarefa
+```sql
+CREATE DATABASE tasks;
+```
 
-| Status | Descrição |
-|---|---|
-| `PENDENTE` | Estado inicial — toda tarefa nasce com esse status |
-| `EM_ANDAMENTO` | Tarefa em execução |
-| `CONCLUIDO` | Tarefa finalizada |
-| `CANCELADO` | Tarefa cancelada |
-| `NAO_EXECUTADA` | Tarefa vencida (data de execução passou) |
+### 3. Configure `application.properties`
 
-## Tipos de Recorrência
-
-| Tipo | Descrição | Uso |
-|---|---|---|
-| `UNICA` | Tarefa única (sem recorrência) | `POST /api/tasks` |
-| `MENSAL` | Tarefa recorrente mensal | `POST /api/tasks/recurrent` |
-
-## Como rodar localmente
-
-### Pré-requisitos
-- Java 17+
-- PostgreSQL rodando localmente
-- Maven
-
-### Configuração do banco
-
-Crie um banco de dados chamado `tasks` no PostgreSQL e configure no `application.properties`:
+Edite `src/main/resources/application.properties`:
 
 ```properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/tasks?reWriteBatchedInserts=true
-spring.datasource.username=seu_usuario
-spring.datasource.password=sua_senha
+spring.datasource.username=postgres
+spring.datasource.password=root
 spring.datasource.driver-class-name=org.postgresql.Driver
+
 spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
 spring.jpa.open-in-view=false
 
-# Batch configuration
+spring.data.web.pageable.default-page-size=100
+
 spring.jpa.properties.hibernate.order_inserts=true
 spring.jpa.properties.hibernate.jdbc.batch_size=50
-
-# Paginação padrão
-spring.data.web.pageable.default-page-size=100
 ```
 
-### Rodando a aplicação
+### 4. Instale as dependências
 
 ```bash
-./mvnw spring-boot:run
+mvn clean install
 ```
 
-A aplicação sobe em `http://localhost:8080`.
+### 5. Execute a aplicação
 
-## Exemplos de requisição
+```bash
+mvn spring-boot:run
+```
 
-### Criar tarefa única
-```http
-POST /api/tasks
-Content-Type: application/json
+A API estará disponível em: `http://localhost:8080`
 
+## 🔐 Autenticação
+
+### Registrar novo usuário
+
+**POST** `/api/auth/register`
+
+```json
 {
-  "titulo": "Estudar Spring Boot",
-  "descricao": "Revisar anotações de JPA e MapStruct",
-  "dataExecucao": "2026-04-25"
+  "nome": "André Luiz",
+  "email": "andre@example.com",
+  "password": "senha123"
 }
 ```
 
 **Resposta (201 Created):**
+
 ```json
 {
   "id": 1,
-  "titulo": "Estudar Spring Boot",
-  "descricao": "Revisar anotações de JPA e MapStruct",
+  "nome": "André Luiz",
+  "email": "andre@example.com"
+}
+```
+
+### Login
+
+**POST** `/api/auth/login`
+
+```json
+{
+  "email": "andre@example.com",
+  "password": "senha123"
+}
+```
+
+**Resposta (200 OK):**
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbmRyZUBleGFtcGxlLmNvbSIsInVzZXJJZCI6MSwiaWF0IjoxNjY2Njc2ODAwLCJleHAiOjE2NjY3NjMyMDB9.signature"
+}
+```
+
+Use o token em todas as requisições autenticadas:
+
+```
+Authorization: Bearer <seu_token_aqui>
+```
+
+## 📚 Endpoints da API
+
+### Tarefas
+
+#### Listar tarefas (paginado)
+
+**GET** `/api/tasks`
+
+**Query params:**
+- `page=0` (padrão)
+- `size=100` (padrão, máx 100)
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Resposta (200 OK):**
+
+```json
+{
+  "content": [
+    {
+      "id": 1,
+      "titulo": "Comprar pão",
+      "descricao": "Pão integral no mercado",
+      "status": "PENDENTE",
+      "tipoRecorrencia": "UNICA",
+      "ocorrencia": 1,
+      "dataExecucao": "2026-04-25",
+      "criadoEm": "2026-04-25T14:30:00",
+      "atualizadoEm": "2026-04-25T14:30:00",
+      "taskGroup": null
+    }
+  ],
+  "pageable": {
+    "pageNumber": 0,
+    "pageSize": 100,
+    "totalElements": 1,
+    "totalPages": 1
+  }
+}
+```
+
+#### Buscar tarefa por ID
+
+**GET** `/api/tasks/{id}`
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Resposta (200 OK):**
+
+```json
+{
+  "id": 1,
+  "titulo": "Comprar pão",
+  "descricao": "Pão integral no mercado",
   "status": "PENDENTE",
-  "tipoRecorrencia": null,
-  "criadoEm": "2026-04-21T15:30:00",
-  "atualizadoEm": "2026-04-21T15:30:00",
+  "tipoRecorrencia": "UNICA",
   "ocorrencia": 1,
   "dataExecucao": "2026-04-25",
+  "criadoEm": "2026-04-25T14:30:00",
+  "atualizadoEm": "2026-04-25T14:30:00",
   "taskGroup": null
 }
 ```
 
-### Criar tarefas recorrentes (MENSAL)
-```http
-POST /api/tasks/recurrent
-Content-Type: application/json
+#### Criar tarefa simples
 
+**POST** `/api/tasks`
+
+**Headers:**
+```
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+**Body:**
+
+```json
 {
-  "titulo": "Pagar conta de água",
-  "descricao": "Fazer o pagamento da conta de água todo mês",
-  "tipoRecorrencia": "MENSAL",
-  "totalRecorrencia": 12
+  "titulo": "Estudar Spring Security",
+  "descricao": "Implementar JWT authentication",
+  "dataExecucao": "2026-05-01"
 }
 ```
 
 **Resposta (201 Created):**
-Retorna uma lista com 12 tasks, cada uma com:
-- `ocorrencia`: 1, 2, 3, ..., 12
-- `dataExecucao`: calculada automaticamente (+1 mês, +2 meses, etc)
-- `taskGroup.id`: referência ao grupo de recorrência
-- `status`: PENDENTE (todas nascem assim)
+
+```json
+{
+  "id": 2,
+  "titulo": "Estudar Spring Security",
+  "descricao": "Implementar JWT authentication",
+  "status": "PENDENTE",
+  "tipoRecorrencia": null,
+  "ocorrencia": 1,
+  "dataExecucao": "2026-05-01",
+  "criadoEm": "2026-04-25T14:35:00",
+  "atualizadoEm": "2026-04-25T14:35:00",
+  "taskGroup": null
+}
+```
+
+#### Criar tarefas recorrentes (mensais)
+
+**POST** `/api/tasks/recurrent`
+
+**Headers:**
+```
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+**Body:**
+
+```json
+{
+  "titulo": "Pagar aluguel",
+  "descricao": "Aluguel do apartamento",
+  "tipoRecorrencia": "MENSAL",
+  "totalRecorrencia": 12,
+  "dataExecucao": "2026-05-01"
+}
+```
+
+**Resposta (201 Created):**
 
 ```json
 [
   {
-    "id": 2,
-    "titulo": "Pagar conta de água",
-    "descricao": "Fazer o pagamento da conta de água todo mês",
+    "id": 3,
+    "titulo": "Pagar aluguel",
+    "descricao": "Aluguel do apartamento",
     "status": "PENDENTE",
     "tipoRecorrencia": "MENSAL",
-    "criadoEm": "2026-04-21T15:35:00",
-    "atualizadoEm": "2026-04-21T15:35:00",
     "ocorrencia": 1,
-    "dataExecucao": "2026-04-21",
-    "taskGroup": {
-      "id": 1,
-      "frequencia": "MENSAL",
-      "totalRecorrencia": 12,
-      "criadoEm": "2026-04-21T15:35:00",
-      "atualizadoEm": "2026-04-21T15:35:00"
-    }
+    "dataExecucao": "2026-05-01",
+    "criadoEm": "2026-04-25T14:40:00",
+    "atualizadoEm": "2026-04-25T14:40:00",
+    "taskGroup": {"id": 1, "frequencia": "MENSAL", "totalRecorrencia": 12}
   },
   {
-    "id": 3,
-    "titulo": "Pagar conta de água",
-    "descricao": "Fazer o pagamento da conta de água todo mês",
+    "id": 4,
+    "titulo": "Pagar aluguel",
+    "descricao": "Aluguel do apartamento",
     "status": "PENDENTE",
     "tipoRecorrencia": "MENSAL",
-    "criadoEm": "2026-04-21T15:35:00",
-    "atualizadoEm": "2026-04-21T15:35:00",
     "ocorrencia": 2,
-    "dataExecucao": "2026-05-21",
-    "taskGroup": {
-      "id": 1,
-      "frequencia": "MENSAL",
-      "totalRecorrencia": 12
-    }
+    "dataExecucao": "2026-06-01",
+    "criadoEm": "2026-04-25T14:40:00",
+    "atualizadoEm": "2026-04-25T14:40:00",
+    "taskGroup": {"id": 1, "frequencia": "MENSAL", "totalRecorrencia": 12}
   }
-  // ... mais 10 ocorrências
 ]
 ```
 
-### Listar tarefas com paginação
-```http
-GET /api/tasks?page=0&size=10&sort=criadoEm,desc
-```
+#### Atualizar tarefa
 
-### Buscar tarefa por ID
-```http
-GET /api/tasks/1
-```
+**PUT** `/api/tasks/{id}`
 
-### Atualizar tarefa
-```http
-PUT /api/tasks/1
+**Headers:**
+```
+Authorization: Bearer <token>
 Content-Type: application/json
-
-{
-  "titulo": "Estudar Spring Boot e JPA",
-  "descricao": "Revisar MapStruct e Lombok"
-}
 ```
 
-### Deletar tarefa
-```http
-DELETE /api/tasks/1
-```
-
-## Agendamento automático
-
-A aplicação roda um job todos os dias **à 00:01** (horário de Brasília) que:
-
-1. Busca todas as tasks com `status = PENDENTE` e `dataExecucao < hoje`
-2. Muda o status para `NAO_EXECUTADA`
-3. Registra no log o número de tarefas atualizadas
-
-**Configuração do cron:**
-```
-cron = "1 0 0 * * *"  → Minuto 1, Hora 0, Qualquer dia/mês/dia-da-semana
-timezone = "America/Sao_Paulo"
-```
-
-Logs aparecem assim:
-```
-2026-04-25 00:01:00 INFO - Inicio da tarefa... 2026-04-25T00:01:00
-2026-04-25 00:01:02 INFO - Atualizadas 5 tarefas vencidas
-2026-04-25 00:01:02 INFO - Fim da tarefa... 2026-04-25T00:01:02
-```
-
-## Validações
-
-### Tarefas únicas
-- `titulo`: obrigatório, máx 120 caracteres
-- `descricao`: obrigatório
-- `tipoRecorrencia`: se informado, rejeita com erro 400
-
-### Tarefas recorrentes
-- `tipoRecorrencia`: obrigatório, deve ser `MENSAL`
-- `totalRecorrencia`: obrigatório, deve ser > 0 e ≤ 60 (máximo 5 anos)
-- Se violado: `400 Bad Request` com mensagem de erro
-
-## Tratamento de Erros
-
-Todas as exceções retornam um mapa estruturado:
+**Body:**
 
 ```json
 {
-  "status": 404,
-  "message": "Task com ID 999 não encontrada."
+  "titulo": "Estudar Spring Security (atualizado)",
+  "descricao": "Implementar JWT e OAuth2",
+  "status": "EM_ANDAMENTO",
+  "dataExecucao": "2026-05-05"
 }
 ```
 
-Códigos HTTP utilizados:
-- `200 OK` — Requisição bem-sucedida
-- `201 Created` — Recurso criado
-- `204 No Content` — Deletado com sucesso
-- `400 Bad Request` — Dados inválidos ou regra de negócio violada
-- `404 Not Found` — Recurso não encontrado
-- `500 Internal Server Error` — Erro no servidor
+**Resposta (200 OK):**
 
-## Branches de desenvolvimento
+```json
+{
+  "id": 2,
+  "titulo": "Estudar Spring Security (atualizado)",
+  "descricao": "Implementar JWT e OAuth2",
+  "status": "EM_ANDAMENTO",
+  "tipoRecorrencia": null,
+  "ocorrencia": 1,
+  "dataExecucao": "2026-05-05",
+  "criadoEm": "2026-04-25T14:35:00",
+  "atualizadoEm": "2026-04-25T14:50:00",
+  "taskGroup": null
+}
+```
 
-O projeto utiliza Git Flow com branches de feature:
+#### Deletar tarefa
 
-- `main` — branch principal (production)
-- `feature/recorrencia-base` — entidades e mapeamentos
-- `feature/recorrencia-dto-mapper` — DTOs e mappers
-- `feature/recorrencia-service` — lógica de serviço e testes
-- `feature/scheduling-vencidas` — agendamento automático
+**DELETE** `/api/tasks/{id}`
 
-Cada feature é desenvolvida em branch separada, testada e mergeada via Pull Request.
+**Headers:**
+```
+Authorization: Bearer <token>
+```
 
-## Performance
+**Resposta (204 No Content)**
 
-Otimizações implementadas:
+## 📊 Status das Tarefas
 
-- **Batch Insert:** `batch_size=50` para operações em massa
-- **Rewrite Batched Inserts:** PostgreSQL otimiza múltiplos INSERTs
-- **Order Inserts:** Hibernate ordena comandos para melhor performance
-- **Paginação:** Limite padrão de 100 registros por página
+| Status | Descrição |
+|--------|-----------|
+| `PENDENTE` | Tarefa não iniciada |
+| `EM_ANDAMENTO` | Tarefa em execução |
+| `CONCLUIDO` | Tarefa concluída |
+| `CANCELADO` | Tarefa cancelada |
+| `NAO_EXECUTADA` | Tarefa vencida (atualizada automaticamente) |
 
-## Roadmap
+## 📅 Agendamentos
 
-- [ ] Suporte a recorrência SEMANAL e ANUAL
-- [ ] Endpoint para atualizar TaskGroup
-- [ ] Endpoint para deletar TaskGroup em cascata
-- [ ] Autenticação com Spring Security + JWT
-- [ ] Testes unitários (JUnit 5) e integração (TestContainers)
-- [ ] Documentação com Swagger/OpenAPI
-- [ ] Cache com Redis
-- [ ] Rate limiting
-- [ ] Métricas com Micrometer/Prometheus
+### Job automático: Atualizar tarefas vencidas
 
-## Autor
+**Cron:** `1 0 0 * * *` (01:00 AM, todos os dias - Horário de São Paulo)
 
-André Luiz Santana  
-Backend Java Developer  
-GitHub: [@andreluizsantana](https://github.com/andreluizsantana)  
-LinkedIn: [andrelssr](https://www.linkedin.com/in/andrelssr/)
+Busca todas as tarefas com:
+- Status: `PENDENTE`
+- Data de execução: anterior a hoje
+
+E atualiza para `NAO_EXECUTADA`.
+
+**Logs:**
+```
+INFO: Inicio da tarefa... 2026-04-26T00:00:01
+INFO: Atualizadas 5 tarefas vencidas
+INFO: Fim da tarefa... 2026-04-26T00:00:02
+```
+
+## 🗂️ Estrutura do Projeto
+
+```
+src/main/java/com/project/taskhub/
+├── controller/
+│   ├── AuthenticatorController.java
+│   └── TaskController.java
+├── service/
+│   └── TaskService.java
+├── repository/
+│   ├── TaskRepository.java
+│   ├── TaskGroupRepository.java
+│   └── UserRepository.java
+├── entity/
+│   ├── Task.java
+│   ├── TaskBase.java (superclass)
+│   ├── TaskGroup.java
+│   ├── User.java
+│   └── enums/
+│       ├── StatusTask.java
+│       └── TipoRecorrencia.java
+├── dto/
+│   ├── TaskRequestDTO.java
+│   ├── TaskResponseDTO.java
+│   ├── TaskUpdateDTO.java
+│   ├── TaskMapper.java
+│   ├── TaskGroupMapper.java
+│   └── securitydto/
+│       ├── LoginRequestDTO.java
+│       ├── LoginResponseDTO.java
+│       ├── RegisterUserRequestDTO.java
+│       ├── RegisterUserResponseDTO.java
+│       └── UserMapper.java
+├── security/
+│   ├── SecurityConfig.java
+│   ├── TokenConfiguration.java
+│   └── AuthConfig.java
+├── exceptions/
+│   ├── TaskNotFoundException.java
+│   ├── TaskRecurrenceException.java
+│   └── GlobalExceptionHandler.java
+└── TaskhubApplication.java
+```
+
+## 🛠️ Tecnologias e Dependências
+
+| Dependência | Versão | Propósito |
+|-------------|--------|----------|
+| Spring Boot | 3.4.4 | Framework web |
+| Spring Security | 6.x | Autenticação e autorização |
+| Spring Data JPA | 3.x | ORM e queries |
+| Hibernate | 6.6.11 | Persistência |
+| PostgreSQL Driver | 42.x | Banco de dados |
+| MapStruct | 1.6.3 | Mapeamento de objetos |
+| Lombok | 1.18.x | Redução de boilerplate |
+| Java-JWT (Auth0) | 4.4.0 | Geração de tokens JWT |
+| Bean Validation | 3.x | Validações |
+| Log4j2 | 2.x | Logging |
+
+## 🔒 Segurança
+
+### Password Encoding
+
+Senhas são encoded com **BCrypt** (`PasswordEncoder` bean):
+
+```java
+@Bean
+public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+}
+```
+
+### JWT Configuration
+
+**Secret:** `tasktask` (⚠️ Mude em produção!)
+
+**Claims do token:**
+- `userId` — ID do usuário
+- `sub` (subject) — Email do usuário
+- `iat` (issued at) — Hora de emissão
+- `exp` (expiration) — Expira em 24h
+
+**Algoritmo:** HMAC256
+
+## 🚨 Tratamento de Erros
+
+### Exceptions Customizadas
+
+```json
+{
+  "timestamp": "2026-04-25T14:30:00.000+00:00",
+  "status": 404,
+  "error": "Not Found",
+  "message": "Task com ID 999 não encontrada.",
+  "path": "/api/tasks/999"
+}
+```
+
+```json
+{
+  "timestamp": "2026-04-25T14:30:00.000+00:00",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Total de recorrência não pode exceder 36 tarefas.",
+  "path": "/api/tasks/recurrent"
+}
+```
+
+## 📈 Performance
+
+### Otimizações implementadas
+
+- ✅ Paginação padrão de 100 registros
+- ✅ `reWriteBatchedInserts=true` (PostgreSQL batch inserts)
+- ✅ `order_inserts=true` (Hibernate batch optimization)
+- ✅ `jdbc.batch_size=50`
+- ✅ Queries otimizadas com named parameters
+
+## 🔄 Git Workflow
+
+```bash
+# Feature branch
+git checkout -b feature/seu-feature
+
+# Commit
+git commit -m "type: descrição"
+
+# Push
+git push origin feature/seu-feature
+
+# Pull request no GitHub
+# Merge quando aprovado
+# Delete branch
+```
+
+## 📝 Commits
+
+Siga o padrão:
+
+```
+feat: adiciona novo endpoint
+fix: corrige bug na validação
+docs: atualiza README
+refactor: reorganiza código
+test: adiciona testes unitários
+```
+
+## 🧪 Testes (em desenvolvimento)
+
+```bash
+mvn test
+```
+
+## 📦 Build e Deploy
+
+### Build JAR
+
+```bash
+mvn clean package
+```
+
+### Executar JAR
+
+```bash
+java -jar target/taskhub-0.0.1-SNAPSHOT.jar
+```
+
+## 🐛 Troubleshooting
+
+### Erro: "No qualifying bean of type 'AuthenticationManager'"
+
+**Solução:** Verifique se `AuthenticationManager` está definido em `SecurityConfig`:
+
+```java
+@Bean
+public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+    return config.getAuthenticationManager();
+}
+```
+
+### Erro: "User not found"
+
+**Solução:** Verifique se o usuário existe no banco com:
+
+```sql
+SELECT * FROM users WHERE email = 'seu@email.com';
+```
+
+### Erro de validação no campo `inativo`
+
+**Solução:** Remove `@NotBlank` do campo boolean. Use apenas `@NotBlank` em Strings.
+
+## 📚 Referências
+
+- [Spring Boot Documentation](https://spring.io/projects/spring-boot)
+- [Spring Security Documentation](https://spring.io/projects/spring-security)
+- [Spring Data JPA](https://spring.io/projects/spring-data-jpa)
+- [MapStruct](https://mapstruct.org/)
+- [JWT Introduction](https://jwt.io/introduction)
+
+## 👤 Autor
+
+**André Luiz Santana**
+
+- GitHub: [@andreluizsantana](https://github.com/andreluizsantana)
+- LinkedIn: [andrelssr](https://www.linkedin.com/in/andrelssr/)
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT.
+
+---
+
+**Última atualização:** 25 de abril de 2026
+
+**Versão da API:** 1.0.0

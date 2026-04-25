@@ -76,7 +76,6 @@ public class TaskService {
 	}
 	Task tarefa;
 	tarefa = taskMapper.toEntity(taskrequestdto);
-	tarefa.setOcorrencia(1);
 	tarefa = taskRepository.save(tarefa);
 	return taskMapper.toDTO(tarefa);
     }

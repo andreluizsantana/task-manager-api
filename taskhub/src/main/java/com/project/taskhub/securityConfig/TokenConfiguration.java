@@ -19,7 +19,6 @@ public class TokenConfiguration {
     public String generatorToken(User user) {
 	Algorithm alg = Algorithm.HMAC256(secret);
 	return JWT.create().withClaim("userId", user.getId()).withSubject(user.getEmail()).withExpiresAt(Instant.now().plusSeconds(86400)).withIssuedAt(Instant.now()).sign(alg);
-
     }
 
     public Optional<JWTUserData> validateToken(String token) {

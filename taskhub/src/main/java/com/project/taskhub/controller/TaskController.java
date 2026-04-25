@@ -66,4 +66,10 @@ public class TaskController {
 	return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/test-scheduled")
+    public ResponseEntity<String> testarScheduled() {
+	taskservice.jobTaskVencida();
+	return ResponseEntity.ok("Agendamento testado");
+    }
+
 }

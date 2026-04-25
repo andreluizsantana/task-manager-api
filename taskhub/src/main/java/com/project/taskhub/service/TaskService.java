@@ -1,12 +1,14 @@
 package com.project.taskhub.service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.project.taskhub.dto.TaskGroupMapper;
@@ -16,6 +18,7 @@ import com.project.taskhub.dto.TaskResponseDTO;
 import com.project.taskhub.dto.TaskUpdateDTO;
 import com.project.taskhub.entity.Task;
 import com.project.taskhub.entity.TaskGroup;
+import com.project.taskhub.entity.enums.StatusTask;
 import com.project.taskhub.entity.enums.TipoRecorrencia;
 import com.project.taskhub.exceptions.TaskNotFoundException;
 import com.project.taskhub.exceptions.TaskRecurrenceException;
@@ -24,11 +27,12 @@ import com.project.taskhub.repository.TaskRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
-
+@Log4j2
 public class TaskService {
 
     private final TaskMapper taskMapper;
@@ -39,20 +43,20 @@ public class TaskService {
 
     private static final int FIRST_OCCURRENCE = 1;
 
-    // valida se é uma task recorrete
+    // Valida se é uma task recorrete
     private void validarRecorrencia(TipoRecorrencia tipo, Integer totalRe) {
 	if (tipo != TipoRecorrencia.MENSAL || Objects.isNull(totalRe) || totalRe <= 0) {
 	    throw new TaskRecurrenceException("Dados de recorrência inválidos.");
 	}
     }
 
-    // cria o grupo
+    // Cria o grupo
     private TaskGroup criarTaskGroup(TipoRecorrencia tipo, Integer totalRe) {
 	TaskGroup group = new TaskGroup(tipo, totalRe);
 	return taskGroupRepository.save(group);
     }
 
-    // gera as recorrencias
+    // Gera as recorrencias
     private List<Task> gerarTarefasRecorrentes(TaskRequestDTO taskrequestdto, TaskGroup group, Integer totalRe) {
 	List<Task> tarefas = new ArrayList<>();
 	for (int i = 0; i < totalRe; i++) {
@@ -65,7 +69,7 @@ public class TaskService {
 	return tarefas;
     }
 
-    // salvar
+    // Salvar
     public TaskResponseDTO salvarTarefa(TaskRequestDTO taskrequestdto) {
 	if (taskrequestdto.tipoRecorrencia() != null) {
 	    throw new TaskRecurrenceException("Use '/api/tasks/recurrent' para tarefas recorrentes.");
@@ -76,7 +80,7 @@ public class TaskService {
 	return taskMapper.toDTO(tarefa);
     }
 
-    // tarefa recorrente
+    // Tarefa recorrente
     @Transactional
     public List<TaskResponseDTO> salvarTarefaRecorrente(TaskRequestDTO taskrequestdto) {
 	validarRecorrencia(taskrequestdto.tipoRecorrencia(), taskrequestdto.totalRecorrencia());
@@ -87,7 +91,7 @@ public class TaskService {
 	return salvas.stream().map(taskMapper::toDTO).toList();
     }
 
-    // atualizar status
+    // Atualizar status
     public TaskResponseDTO atualizarDados(Long id, TaskUpdateDTO taskupdatedto) {
 	Task atualiza = taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(id));
 	taskMapper.updateEntityFromDto(taskupdatedto, atualiza);
@@ -95,22 +99,31 @@ public class TaskService {
 	return taskMapper.toDTO(tarefaAtualizada);
     }
 
-    // listar
+    // Listar
     public Page<TaskResponseDTO> listarTarefas(Pageable pageable) {
 	Page<Task> tarefas = taskRepository.findAll(pageable);
 	return tarefas.map(a -> taskMapper.toDTO(a));
     }
 
-    // bucar por ID
+    // Bucar por ID
     public TaskResponseDTO buscarID(Long id) {
 	Task localizaID = taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(id));
 	return taskMapper.toDTO(localizaID);
     }
 
-    // deletar
+    // Deletar
     public void deletarTarefa(Long id) {
 	Task localizaId = taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(id));
 	taskRepository.delete(localizaId);
+    }
 
+    @Scheduled(cron = "1 0 0 * * *", zone = "America/Sao_Paulo")
+    public void jobTaskVencida() {
+	log.info("Inicio da tarefa... {}", LocalDateTime.now());
+	LocalDate hoje = LocalDate.now();
+	List<Task> tarefasVencidas = taskRepository.findByStatusAndDataExecucaoBefore(StatusTask.PENDENTE, hoje);
+	tarefasVencidas.stream().forEach(tarefa -> tarefa.setStatus(StatusTask.NAO_EXECUTADA));
+	taskRepository.saveAll(tarefasVencidas);
+	log.info("Fim da terafa.. {}", LocalDateTime.now());
     }
 }

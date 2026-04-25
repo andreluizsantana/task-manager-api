@@ -1,5 +1,6 @@
 package com.project.taskhub.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -15,4 +16,6 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     List<Task> findByStatus(StatusTask status);
 
     Page<Task> findByStatus(StatusTask status, Pageable pageable);
+
+    List<Task> findByStatusAndDataExecucaoBefore(StatusTask status, LocalDate dataExecucao);
 }

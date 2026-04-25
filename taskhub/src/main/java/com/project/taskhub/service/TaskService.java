@@ -71,11 +71,12 @@ public class TaskService {
 
     // Salvar
     public TaskResponseDTO salvarTarefa(TaskRequestDTO taskrequestdto) {
-	if (taskrequestdto.tipoRecorrencia() != null) {
+	if (taskrequestdto.tipoRecorrencia() != TipoRecorrencia.UNICA) {
 	    throw new TaskRecurrenceException("Use '/api/tasks/recurrent' para tarefas recorrentes.");
 	}
 	Task tarefa;
 	tarefa = taskMapper.toEntity(taskrequestdto);
+	tarefa.setOcorrencia(1);
 	tarefa = taskRepository.save(tarefa);
 	return taskMapper.toDTO(tarefa);
     }

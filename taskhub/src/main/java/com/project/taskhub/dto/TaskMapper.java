@@ -15,7 +15,6 @@ public interface TaskMapper {
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "taskGroup", ignore = true)
     @Mapping(target = "ocorrencia", ignore = true)
-    @Mapping(target = "tipoRecorrencia", ignore = true)
     Task toEntity(TaskRequestDTO dto);
 
     @Mapping(target = "id", ignore = true)

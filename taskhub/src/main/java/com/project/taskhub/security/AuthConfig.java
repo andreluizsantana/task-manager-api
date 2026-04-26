@@ -1,4 +1,4 @@
-package com.project.taskhub.securityConfig;
+package com.project.taskhub.security;
 
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

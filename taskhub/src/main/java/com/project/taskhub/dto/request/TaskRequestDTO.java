@@ -1,4 +1,4 @@
-package com.project.taskhub.dto;
+package com.project.taskhub.dto.request;
 
 import java.time.LocalDate;
 

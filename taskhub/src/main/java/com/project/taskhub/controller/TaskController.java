@@ -15,9 +15,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.project.taskhub.dto.TaskRequestDTO;
-import com.project.taskhub.dto.TaskResponseDTO;
-import com.project.taskhub.dto.TaskUpdateDTO;
+import com.project.taskhub.dto.request.TaskRequestDTO;
+import com.project.taskhub.dto.response.TaskResponseDTO;
+import com.project.taskhub.dto.update.TaskUpdateDTO;
 import com.project.taskhub.service.TaskService;
 
 import jakarta.validation.Valid;

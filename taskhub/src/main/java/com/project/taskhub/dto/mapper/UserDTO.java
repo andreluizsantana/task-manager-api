@@ -1,13 +1,15 @@
-package com.project.taskhub.dto.securitydto;
+package com.project.taskhub.dto.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
+import com.project.taskhub.dto.request.RegisterUserRequestDTO;
+import com.project.taskhub.dto.response.RegisterUserResponseDTO;
 import com.project.taskhub.entity.User;
 
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-public interface UserMapper {
+public interface UserDTO {
 
     RegisterUserResponseDTO toDTO(User user);
 

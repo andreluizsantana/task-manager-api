@@ -12,14 +12,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.project.taskhub.dto.securitydto.LoginRequestDTO;
-import com.project.taskhub.dto.securitydto.LoginResponseDTO;
-import com.project.taskhub.dto.securitydto.RegisterUserRequestDTO;
-import com.project.taskhub.dto.securitydto.RegisterUserResponseDTO;
-import com.project.taskhub.dto.securitydto.UserMapper;
+import com.project.taskhub.dto.mapper.UserDTO;
+import com.project.taskhub.dto.request.LoginRequestDTO;
+import com.project.taskhub.dto.request.RegisterUserRequestDTO;
+import com.project.taskhub.dto.response.LoginResponseDTO;
+import com.project.taskhub.dto.response.RegisterUserResponseDTO;
 import com.project.taskhub.entity.User;
 import com.project.taskhub.repository.UserRepository;
-import com.project.taskhub.securityConfig.TokenConfiguration;
+import com.project.taskhub.security.TokenConfiguration;
 
 import jakarta.validation.Valid;
 
@@ -27,16 +27,16 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/auth")
 public class AuthenticatorController {
 
-    private final UserMapper userMapper;
+    private final UserDTO userDTO;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final TokenConfiguration tokenConfiguration;
 
-    public AuthenticatorController(UserRepository userRepository, UserMapper userMapper, PasswordEncoder passwordEncoder, @Lazy AuthenticationManager authenticationManager,
+    public AuthenticatorController(UserRepository userRepository, UserDTO userDTO, PasswordEncoder passwordEncoder, @Lazy AuthenticationManager authenticationManager,
 	    TokenConfiguration tokenConfiguration) {
 	this.userRepository = userRepository;
-	this.userMapper = userMapper;
+	this.userDTO = userDTO;
 	this.passwordEncoder = passwordEncoder;
 	this.authenticationManager = authenticationManager;
 	this.tokenConfiguration = tokenConfiguration;
@@ -54,11 +54,11 @@ public class AuthenticatorController {
 
     @PostMapping("/register")
     public ResponseEntity<RegisterUserResponseDTO> register(@Valid @RequestBody RegisterUserRequestDTO registeruserrequestdto) {
-	User user = userMapper.toEntity(registeruserrequestdto);
+	User user = userDTO.toEntity(registeruserrequestdto);
 	user.setPassword(passwordEncoder.encode(registeruserrequestdto.password()));
 	userRepository.save(user);
 
-	return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.toRegisterDTO(user));
+	return ResponseEntity.status(HttpStatus.CREATED).body(userDTO.toRegisterDTO(user));
     }
 
 }

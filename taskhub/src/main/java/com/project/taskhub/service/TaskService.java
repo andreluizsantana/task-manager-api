@@ -11,11 +11,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import com.project.taskhub.dto.TaskGroupMapper;
-import com.project.taskhub.dto.TaskMapper;
-import com.project.taskhub.dto.TaskRequestDTO;
-import com.project.taskhub.dto.TaskResponseDTO;
-import com.project.taskhub.dto.TaskUpdateDTO;
+import com.project.taskhub.dto.mapper.TaskDTO;
+import com.project.taskhub.dto.mapper.TaskGroupDTO;
+import com.project.taskhub.dto.request.TaskRequestDTO;
+import com.project.taskhub.dto.response.TaskResponseDTO;
+import com.project.taskhub.dto.update.TaskUpdateDTO;
 import com.project.taskhub.entity.Task;
 import com.project.taskhub.entity.TaskGroup;
 import com.project.taskhub.entity.enums.StatusTask;
@@ -35,8 +35,8 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class TaskService {
 
-    private final TaskMapper taskMapper;
-    private final TaskGroupMapper taskGroupMapper;
+    private final TaskDTO taskDTO;
+    private final TaskGroupDTO taskGroupDTO;
 
     private final TaskRepository taskRepository;
     private final TaskGroupRepository taskGroupRepository;
@@ -64,7 +64,7 @@ public class TaskService {
     private List<Task> gerarTarefasRecorrentes(TaskRequestDTO taskrequestdto, TaskGroup group, Integer totalRe) {
 	List<Task> tarefas = new ArrayList<>();
 	for (int i = 0; i < totalRe; i++) {
-	    Task tarefa = taskMapper.toEntity(taskrequestdto);
+	    Task tarefa = taskDTO.toEntity(taskrequestdto);
 	    tarefa.setTaskGroup(group);
 	    tarefa.setOcorrencia(i + FIRST_OCCURRENCE);
 	    tarefa.setDataExecucao(LocalDate.now().plusMonths(i));
@@ -79,9 +79,9 @@ public class TaskService {
 	    throw new TaskRecurrenceException("Use '/api/tasks/recurrent' para tarefas recorrentes.");
 	}
 	Task tarefa;
-	tarefa = taskMapper.toEntity(taskrequestdto);
+	tarefa = taskDTO.toEntity(taskrequestdto);
 	tarefa = taskRepository.save(tarefa);
-	return taskMapper.toDTO(tarefa);
+	return taskDTO.toDTO(tarefa);
     }
 
     // Tarefa recorrente
@@ -92,27 +92,27 @@ public class TaskService {
 	List<Task> tarefas = gerarTarefasRecorrentes(taskrequestdto, group, taskrequestdto.totalRecorrencia());
 	List<Task> salvas = taskRepository.saveAll(tarefas);
 
-	return salvas.stream().map(taskMapper::toDTO).toList();
+	return salvas.stream().map(taskDTO::toDTO).toList();
     }
 
     // Atualizar status
     public TaskResponseDTO atualizarDados(Long id, TaskUpdateDTO taskupdatedto) {
 	Task atualiza = taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(id));
-	taskMapper.updateEntityFromDto(taskupdatedto, atualiza);
+	taskDTO.updateEntityFromDto(taskupdatedto, atualiza);
 	Task tarefaAtualizada = taskRepository.save(atualiza);
-	return taskMapper.toDTO(tarefaAtualizada);
+	return taskDTO.toDTO(tarefaAtualizada);
     }
 
     // Listar
     public Page<TaskResponseDTO> listarTarefas(Pageable pageable) {
 	Page<Task> tarefas = taskRepository.findAll(pageable);
-	return tarefas.map(a -> taskMapper.toDTO(a));
+	return tarefas.map(a -> taskDTO.toDTO(a));
     }
 
     // Bucar por ID
     public TaskResponseDTO buscarID(Long id) {
 	Task localizaID = taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(id));
-	return taskMapper.toDTO(localizaID);
+	return taskDTO.toDTO(localizaID);
     }
 
     // Deletar

@@ -541,10 +541,6 @@ java -jar target/taskhub-0.0.1-SNAPSHOT.jar
 
 ## 🐛 Troubleshooting
 
-### Erro: "No qualifying bean of type 'AuthenticationManager'"
-
-**Solução:** Verifique se `AuthenticationManager` está definido em `SecurityConfig`:
-
 ```java
 @Bean
 public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
@@ -559,10 +555,6 @@ public AuthenticationManager authenticationManager(AuthenticationConfiguration c
 ```sql
 SELECT * FROM users WHERE email = 'seu@email.com';
 ```
-
-### Erro de validação no campo `inativo`
-
-**Solução:** Remove `@NotBlank` do campo boolean. Use apenas `@NotBlank` em Strings.
 
 ## 📚 Referências
 

@@ -11,7 +11,7 @@ import com.project.taskhub.dto.update.TaskUpdateDTO;
 import com.project.taskhub.entity.Task;
 
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-public interface TaskDTO {
+public interface TaskMapper {
     TaskResponseDTO toDTO(Task task);
 
     @Mapping(target = "id", ignore = true)

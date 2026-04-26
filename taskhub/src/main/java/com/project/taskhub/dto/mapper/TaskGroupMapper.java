@@ -8,7 +8,7 @@ import com.project.taskhub.dto.response.TaskGroupResponseDTO;
 import com.project.taskhub.entity.TaskGroup;
 
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-public interface TaskGroupDTO {
+public interface TaskGroupMapper {
     TaskGroupResponseDTO toDTO(TaskGroup taskgroup);
 
     @Mapping(target = "id", ignore = true)

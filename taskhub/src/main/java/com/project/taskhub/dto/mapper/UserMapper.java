@@ -9,7 +9,7 @@ import com.project.taskhub.dto.response.RegisterUserResponseDTO;
 import com.project.taskhub.entity.User;
 
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-public interface UserDTO {
+public interface UserMapper {
 
     RegisterUserResponseDTO toDTO(User user);
 

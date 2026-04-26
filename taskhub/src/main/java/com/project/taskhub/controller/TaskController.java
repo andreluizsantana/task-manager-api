@@ -25,10 +25,10 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/tasks")
 public class TaskController {
-    private final TaskService taskservice;
+    private final TaskService taskService;
 
-    public TaskController(TaskService taskservice) {
-	this.taskservice = taskservice;
+    public TaskController(TaskService taskService) {
+	this.taskService = taskService;
     }
 
     /**
@@ -39,42 +39,42 @@ public class TaskController {
      */
     @GetMapping
     public Page<TaskResponseDTO> listarTarefas(Pageable pageable) {
-	return taskservice.listarTarefas(pageable);
+	return taskService.listarTarefas(pageable);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<TaskResponseDTO> buscaID(@PathVariable Long id) {
-	TaskResponseDTO busca = taskservice.buscarID(id);
+	TaskResponseDTO busca = taskService.buscarID(id);
 	return ResponseEntity.status(HttpStatus.OK).body(busca);
     }
 
     @PostMapping
     public ResponseEntity<TaskResponseDTO> addTarefa(@Valid @RequestBody TaskRequestDTO dto) {
-	TaskResponseDTO novaTarefa = taskservice.salvarTarefa(dto);
+	TaskResponseDTO novaTarefa = taskService.salvarTarefa(dto);
 	return ResponseEntity.status(HttpStatus.CREATED).body(novaTarefa);
     }
 
     @PostMapping("/recurrent")
     public ResponseEntity<List<TaskResponseDTO>> salvarRecorrente(@RequestBody @Valid TaskRequestDTO dto) {
-	List<TaskResponseDTO> resposta = taskservice.salvarTarefaRecorrente(dto);
+	List<TaskResponseDTO> resposta = taskService.salvarTarefaRecorrente(dto);
 	return ResponseEntity.status(HttpStatus.CREATED).body(resposta);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<TaskResponseDTO> atualizarTask(@PathVariable Long id, @Valid @RequestBody TaskUpdateDTO udto) {
-	TaskResponseDTO atualiza = taskservice.atualizarDados(id, udto);
+	TaskResponseDTO atualiza = taskService.atualizarDados(id, udto);
 	return ResponseEntity.status(HttpStatus.OK).body(atualiza);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletarTask(@PathVariable Long id) {
-	taskservice.deletarTarefa(id);
+	taskService.deletarTarefa(id);
 	return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/test-scheduled")
     public ResponseEntity<String> testarScheduled() {
-	taskservice.jobTaskVencida();
+	taskService.jobTaskVencida();
 	return ResponseEntity.ok("Agendamento testado");
     }
 

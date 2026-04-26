@@ -122,6 +122,7 @@ public class TaskService {
 	taskRepository.delete(localizaId);
     }
 
+    @Transactional
     @Scheduled(cron = "1 0 0 * * *", zone = "America/Sao_Paulo")
     public void jobTaskVencida() {
 	log.info("Inicio da tarefa... {}", LocalDateTime.now());

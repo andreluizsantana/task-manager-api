@@ -12,7 +12,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import com.project.taskhub.dto.mapper.TaskGroupMapper;
 import com.project.taskhub.dto.mapper.TaskMapper;
 import com.project.taskhub.dto.request.TaskRequestDTO;
 import com.project.taskhub.dto.response.TaskResponseDTO;
@@ -37,7 +36,6 @@ import lombok.extern.log4j.Log4j2;
 public class TaskService {
 
     private final TaskMapper taskMapper;
-    private final TaskGroupMapper taskGroupMapper;
     private final NotificationService notificationService;
     private final TaskRepository taskRepository;
     private final TaskGroupRepository taskGroupRepository;

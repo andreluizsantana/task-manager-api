@@ -1,6 +1,6 @@
 # TaskHub API
 
-Uma REST API robusta para gerenciamento de tarefas com suporte a tarefas recorrentes, agendamento automático e autenticação JWT.
+Uma REST API para gerenciamento de tarefas com suporte a tarefas recorrentes, agendamento automático e autenticação JWT.
 
 **Stack:** Java 17 • Spring Boot 3.4.4 • PostgreSQL • JPA/Hibernate • MapStruct • Spring Security • JWT
 

@@ -1,10 +1,10 @@
 # TaskHub API
 
-Uma REST API robusta para gerenciamento de tarefas com suporte a tarefas recorrentes, agendamento automático e autenticação JWT.
+Uma REST API para gerenciamento de tarefas com suporte a tarefas recorrentes, agendamento automático e autenticação JWT.
 
 **Stack:** Java 17 • Spring Boot 3.4.4 • PostgreSQL • JPA/Hibernate • MapStruct • Spring Security • JWT
 
-## 🚀 Funcionalidades
+## uncionalidades
 
 ### Tarefas
 - ✅ CRUD completo de tarefas
@@ -26,7 +26,13 @@ Uma REST API robusta para gerenciamento de tarefas com suporte a tarefas recorre
 - ✅ Transações gerenciadas
 - ✅ Logging com Log4j2
 
-## 📋 Pré-requisitos
+### Performance & Otimizações
+Para suportar alta carga de requisições e processamento em lote, o acesso ao banco de dados foi rigorosamente otimizado:
+- ✅ reWriteBatchedInserts=true e jdbc.batch_size=50: Reduz drasticamente as viagens de rede (round-trips) agrupando múltiplos INSERTs numa única transação no PostgreSQL.
+- ✅ order_inserts=true: Otimiza o buffer do Hibernate antes do flush.
+- ✅ Paginação Padrão: Previne sobrecarga de memória limitando retornos massivos.
+
+## Pré-requisitos
 
 - **Java 17+** (testado com JDK 21)
 - **PostgreSQL 12+**
@@ -42,7 +48,12 @@ git clone https://github.com/andreluizsantana/task-manager-api.git
 cd task-manager-api
 ```
 
+Suba o Banco de Dados (via Docker)
+
 ### 2. Configure o banco de dados
+```
+docker-compose up -d
+```
 
 Crie um banco PostgreSQL:
 
@@ -85,7 +96,7 @@ mvn spring-boot:run
 
 A API estará disponível em: `http://localhost:8080`
 
-## 🔐 Autenticação
+## Autenticação
 
 ### Registrar novo usuário
 
@@ -134,7 +145,7 @@ Use o token em todas as requisições autenticadas:
 Authorization: Bearer <seu_token_aqui>
 ```
 
-## 📚 Endpoints da API
+## Endpoints da API
 
 ### Tarefas
 
@@ -353,7 +364,7 @@ Authorization: Bearer <token>
 | `CANCELADO` | Tarefa cancelada |
 | `NAO_EXECUTADA` | Tarefa vencida (atualizada automaticamente) |
 
-## 📅 Agendamentos
+## Agendamentos
 
 ### Job automático: Atualizar tarefas vencidas
 
@@ -372,7 +383,7 @@ INFO: Atualizadas 5 tarefas vencidas
 INFO: Fim da tarefa... 2026-04-26T00:00:02
 ```
 
-## 🗂️ Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
 src/main/java/com/project/taskhub/
@@ -416,7 +427,7 @@ src/main/java/com/project/taskhub/
 └── TaskhubApplication.java
 ```
 
-## 🛠️ Tecnologias e Dependências
+## Tecnologias e Dependências
 
 | Dependência | Versão | Propósito |
 |-------------|--------|----------|
@@ -431,7 +442,7 @@ src/main/java/com/project/taskhub/
 | Bean Validation | 3.x | Validações |
 | Log4j2 | 2.x | Logging |
 
-## 🔒 Segurança
+## Segurança
 
 ### Password Encoding
 
@@ -446,7 +457,7 @@ public PasswordEncoder passwordEncoder() {
 
 ### JWT Configuration
 
-**Secret:** `tasktask` (⚠️ Mude em produção!)
+**Secret:** `tasktask` (Mude em produção!)
 
 **Claims do token:**
 - `userId` — ID do usuário
@@ -456,7 +467,7 @@ public PasswordEncoder passwordEncoder() {
 
 **Algoritmo:** HMAC256
 
-## 🚨 Tratamento de Erros
+## Tratamento de Erros
 
 ### Exceptions Customizadas
 
@@ -480,7 +491,7 @@ public PasswordEncoder passwordEncoder() {
 }
 ```
 
-## 📈 Performance
+## Performance
 
 ### Otimizações implementadas
 
@@ -490,7 +501,7 @@ public PasswordEncoder passwordEncoder() {
 - ✅ `jdbc.batch_size=50`
 - ✅ Queries otimizadas com named parameters
 
-## 🔄 Git Workflow
+## Git Workflow
 
 ```bash
 # Feature branch
@@ -507,7 +518,7 @@ git push origin feature/seu-feature
 # Delete branch
 ```
 
-## 📝 Commits
+## Commits
 
 Siga o padrão:
 
@@ -519,13 +530,13 @@ refactor: reorganiza código
 test: adiciona testes unitários
 ```
 
-## 🧪 Testes (em desenvolvimento)
+## Testes (em desenvolvimento)
 
 ```bash
 mvn test
 ```
 
-## 📦 Build e Deploy
+## Build e Deploy
 
 ### Build JAR
 
@@ -556,7 +567,7 @@ public AuthenticationManager authenticationManager(AuthenticationConfiguration c
 SELECT * FROM users WHERE email = 'seu@email.com';
 ```
 
-## 📚 Referências
+## Referências
 
 - [Spring Boot Documentation](https://spring.io/projects/spring-boot)
 - [Spring Security Documentation](https://spring.io/projects/spring-security)
@@ -571,7 +582,7 @@ SELECT * FROM users WHERE email = 'seu@email.com';
 - GitHub: [@andreluizsantana](https://github.com/andreluizsantana)
 - LinkedIn: [andrelssr](https://www.linkedin.com/in/andrelssr/)
 
-## 📄 Licença
+## Licença
 
 Este projeto está sob a licença MIT.
 

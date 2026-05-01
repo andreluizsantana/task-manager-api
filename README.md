@@ -28,9 +28,9 @@ Uma REST API robusta para gerenciamento de tarefas com suporte a tarefas recorre
 
 ### Performance & Otimizações
 Para suportar alta carga de requisições e processamento em lote, o acesso ao banco de dados foi rigorosamente otimizado:
-✅ reWriteBatchedInserts=true e jdbc.batch_size=50: Reduz drasticamente as viagens de rede (round-trips) agrupando múltiplos INSERTs numa única transação no PostgreSQL.
-✅ order_inserts=true: Otimiza o buffer do Hibernate antes do flush.
-✅ Paginação Padrão: Previne sobrecarga de memória limitando retornos massivos.
+- ✅ reWriteBatchedInserts=true e jdbc.batch_size=50: Reduz drasticamente as viagens de rede (round-trips) agrupando múltiplos INSERTs numa única transação no PostgreSQL.
+- ✅ order_inserts=true: Otimiza o buffer do Hibernate antes do flush.
+- ✅ Paginação Padrão: Previne sobrecarga de memória limitando retornos massivos.
 
 ## 📋 Pré-requisitos
 

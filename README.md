@@ -26,6 +26,12 @@ Uma REST API robusta para gerenciamento de tarefas com suporte a tarefas recorre
 - ✅ Transações gerenciadas
 - ✅ Logging com Log4j2
 
+### Performance & Otimizações
+Para suportar alta carga de requisições e processamento em lote, o acesso ao banco de dados foi rigorosamente otimizado:
+✅ reWriteBatchedInserts=true e jdbc.batch_size=50: Reduz drasticamente as viagens de rede (round-trips) agrupando múltiplos INSERTs numa única transação no PostgreSQL.
+✅ order_inserts=true: Otimiza o buffer do Hibernate antes do flush.
+✅ Paginação Padrão: Previne sobrecarga de memória limitando retornos massivos.
+
 ## 📋 Pré-requisitos
 
 - **Java 17+** (testado com JDK 21)
@@ -42,7 +48,12 @@ git clone https://github.com/andreluizsantana/task-manager-api.git
 cd task-manager-api
 ```
 
+Suba o Banco de Dados (via Docker)
+
 ### 2. Configure o banco de dados
+```
+docker-compose up -d
+```
 
 Crie um banco PostgreSQL:
 

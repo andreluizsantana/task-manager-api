@@ -47,6 +47,7 @@ public class TaskService {
     private static final int FIRST_OCCURRENCE = 1;
 
     // Valida se é uma task recorrete
+
     private void validarRecorrencia(TipoRecorrencia tipo, Integer totalRe) {
 	int qtdeMaximaRec = 36;
 	if (tipo != TipoRecorrencia.MENSAL || Objects.isNull(totalRe) || totalRe <= 0) {
@@ -58,12 +59,14 @@ public class TaskService {
     }
 
     // Cria o grupo
+
     private TaskGroup criarTaskGroup(TipoRecorrencia tipo, Integer totalRe) {
 	TaskGroup group = new TaskGroup(tipo, totalRe);
 	return taskGroupRepository.save(group);
     }
 
     // Gera as recorrencias
+
     private List<Task> gerarTarefasRecorrentes(TaskRequestDTO taskrequestdto, TaskGroup group, Integer totalRe) {
 	List<Task> tarefas = new ArrayList<>();
 	for (int i = 0; i < totalRe; i++) {
@@ -77,6 +80,7 @@ public class TaskService {
     }
 
     // Salvar
+
     public TaskResponseDTO salvarTarefa(TaskRequestDTO taskrequestdto) {
 	if (taskrequestdto.tipoRecorrencia() != TipoRecorrencia.UNICA) {
 	    throw new TaskRecurrenceException("Use '/api/tasks/recurrent' para tarefas recorrentes.");
@@ -88,6 +92,7 @@ public class TaskService {
     }
 
     // Tarefa recorrente
+
     @Transactional
     public List<TaskResponseDTO> salvarTarefaRecorrente(TaskRequestDTO taskrequestdto) {
 	validarRecorrencia(taskrequestdto.tipoRecorrencia(), taskrequestdto.totalRecorrencia());
@@ -99,6 +104,7 @@ public class TaskService {
     }
 
     // Atualizar status
+
     public TaskResponseDTO atualizarDados(Long id, TaskUpdateDTO taskupdatedto) {
 	Task atualiza = taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(id));
 	taskMapper.updateEntityFromDto(taskupdatedto, atualiza);
@@ -107,6 +113,7 @@ public class TaskService {
     }
 
     // Listar
+
     @Transactional(readOnly = true)
     public Page<TaskResponseDTO> listarTarefas(Pageable pageable) {
 	Page<Task> tarefas = taskRepository.findAll(pageable);
@@ -114,6 +121,7 @@ public class TaskService {
     }
 
     // Bucar por ID
+
     @Transactional(readOnly = true)
     public TaskResponseDTO buscarID(Long id) {
 	Task localizaID = taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(id));
@@ -121,6 +129,7 @@ public class TaskService {
     }
 
     // Deletar
+
     public void deletarTarefa(Long id) {
 	Task localizaId = taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(id));
 	taskRepository.delete(localizaId);

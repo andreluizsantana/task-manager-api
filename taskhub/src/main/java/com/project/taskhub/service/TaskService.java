@@ -6,11 +6,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.project.taskhub.dto.mapper.TaskMapper;
 import com.project.taskhub.dto.request.TaskRequestDTO;
@@ -25,13 +25,10 @@ import com.project.taskhub.exceptions.TaskRecurrenceException;
 import com.project.taskhub.repository.TaskGroupRepository;
 import com.project.taskhub.repository.TaskRepository;
 
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 @Service
 @Transactional
-@RequiredArgsConstructor
 @Log4j2
 public class TaskService {
 
@@ -39,6 +36,13 @@ public class TaskService {
     private final NotificationService notificationService;
     private final TaskRepository taskRepository;
     private final TaskGroupRepository taskGroupRepository;
+
+    public TaskService(TaskMapper taskMapper, NotificationService notificationService, TaskRepository taskRepository, TaskGroupRepository taskGroupRepository) {
+	this.taskMapper = taskMapper;
+	this.notificationService = notificationService;
+	this.taskRepository = taskRepository;
+	this.taskGroupRepository = taskGroupRepository;
+    }
 
     private static final int FIRST_OCCURRENCE = 1;
 
@@ -103,12 +107,14 @@ public class TaskService {
     }
 
     // Listar
+    @Transactional(readOnly = true)
     public Page<TaskResponseDTO> listarTarefas(Pageable pageable) {
 	Page<Task> tarefas = taskRepository.findAll(pageable);
 	return tarefas.map(taskMapper::toDTO);
     }
 
     // Bucar por ID
+    @Transactional(readOnly = true)
     public TaskResponseDTO buscarID(Long id) {
 	Task localizaID = taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(id));
 	return taskMapper.toDTO(localizaID);
@@ -123,19 +129,15 @@ public class TaskService {
     @Transactional
     @Scheduled(cron = "1 0 0 * * *", zone = "America/Sao_Paulo")
     public void jobTaskVencida() {
-	log.info("Inicio da tarefa... {}", LocalDateTime.now());
+	log.info("Início do jobTaskVencida em {}", LocalDateTime.now());
 	LocalDate hoje = LocalDate.now();
 	List<Task> tarefasVencidas = taskRepository.findByStatusAndDataExecucaoBefore(StatusTask.PENDENTE, hoje);
-	tarefasVencidas.stream().forEach(tarefa -> tarefa.setStatus(StatusTask.NAO_EXECUTADA));
-	try {
-	    taskRepository.saveAll(tarefasVencidas);
-	    log.info("Atualizadas {} tarefas vencidas", tarefasVencidas.size());
-	} catch (DataAccessException e) {
-	    log.error("Erro de acesso ao BD", e);
-	    notificationService.enviarAlerta("JobTaskVencida falhou.", e);
-	} catch (Exception e) {
-	    log.error("Erro ao atualizar tarefas vencidas", e);
+	if (tarefasVencidas.isEmpty()) {
+	    log.info("Nenhuma tarefa vencida encontrada.");
+	    return;
 	}
-	log.info("Fim da tarefa... {}", LocalDateTime.now());
+	tarefasVencidas.forEach(t -> t.setStatus(StatusTask.NAO_EXECUTADA));
+	log.info("Atualizadas {} tarefas vencidas", tarefasVencidas.size());
+	log.info("Fim do jobTaskVencida em {}", LocalDateTime.now());
     }
 }

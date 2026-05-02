@@ -15,24 +15,23 @@ import jakarta.persistence.MappedSuperclass;
 @MappedSuperclass
 public abstract class TaskBase implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    @CreatedDate
-    @Column(updatable = false)
-    private LocalDateTime criadoEm;
+  @CreatedDate
+  @Column(name = "criado_em", updatable = false)
+  private LocalDateTime criadoEm;
 
-    @LastModifiedDate
-    private LocalDateTime atualizadoEm;
+  @LastModifiedDate
+  @Column(name = "atualizado_em")
+  private LocalDateTime atualizadoEm;
 
-    public TaskBase() {
-    }
+  public TaskBase() {}
 
-    public LocalDateTime getCriadoEm() {
-	return criadoEm;
-    }
+  public LocalDateTime getCriadoEm() {
+    return criadoEm;
+  }
 
-    public LocalDateTime getAtualizadoEm() {
-	return atualizadoEm;
-    }
-
+  public LocalDateTime getAtualizadoEm() {
+    return atualizadoEm;
+  }
 }

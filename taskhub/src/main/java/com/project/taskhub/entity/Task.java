@@ -26,128 +26,132 @@ import jakarta.validation.constraints.Size;
 @Table(name = "tasks")
 public class Task extends TaskBase implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "task_seq")
-    @SequenceGenerator(name = "task_seq", sequenceName = "task_sequence", initialValue = 1, allocationSize = 1)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "task_seq")
+  @SequenceGenerator(
+      name = "task_seq",
+      sequenceName = "task_sequence",
+      initialValue = 1,
+      allocationSize = 1)
+  private Long id;
 
-    @NotBlank(message = "O título é obrigatório")
-    @Size(max = 120, message = "O título deve ter no máximo 120 caracteres")
-    @Column(nullable = false, length = 120)
-    private String titulo;
+  @NotBlank(message = "O título é obrigatório")
+  @Size(max = 120, message = "O título deve ter no máximo 120 caracteres")
+  @Column(nullable = false, length = 120)
+  private String titulo;
 
-    @NotBlank(message = "A descrição é obrigatória")
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String descricao;
+  @NotBlank(message = "A descrição é obrigatória")
+  @Column(nullable = false, columnDefinition = "TEXT")
+  private String descricao;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private StatusTask status = StatusTask.PENDENTE;
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private StatusTask status = StatusTask.PENDENTE;
 
-    @Column(nullable = true, length = 50)
-    @Enumerated(EnumType.STRING)
-    private TipoRecorrencia tipoRecorrencia;
+  @Column(name = "tipo_recorrencia", nullable = true, length = 50)
+  @Enumerated(EnumType.STRING)
+  private TipoRecorrencia tipoRecorrencia;
 
-    private Integer ocorrencia;
+  private Integer ocorrencia;
 
-    private LocalDate dataExecucao;
+  @Column(name = "data_execucao")
+  private LocalDate dataExecucao;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "task_group_id", nullable = true)
-    private TaskGroup taskGroup;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "task_group_id", nullable = true)
+  private TaskGroup taskGroup;
 
-    public Task(@NotBlank(message = "O título é obrigatório") @Size(max = 120, message = "O título deve ter no máximo 120 caracteres") String titulo,
-	    @NotBlank(message = "A descrição é obrigatória") String descricao, LocalDate dataExecucao) {
-	this.titulo = titulo;
-	this.descricao = descricao;
-	this.dataExecucao = dataExecucao;
-    }
+  public Task(
+      @NotBlank(message = "O título é obrigatório")
+          @Size(max = 120, message = "O título deve ter no máximo 120 caracteres")
+          String titulo,
+      @NotBlank(message = "A descrição é obrigatória") String descricao,
+      LocalDate dataExecucao) {
+    this.titulo = titulo;
+    this.descricao = descricao;
+    this.dataExecucao = dataExecucao;
+  }
 
-    public Task() {
-    }
+  public Task() {}
 
-    public TipoRecorrencia getTipoRecorrencia() {
-	return tipoRecorrencia;
-    }
+  public TipoRecorrencia getTipoRecorrencia() {
+    return tipoRecorrencia;
+  }
 
-    public void setTipoRecorrencia(TipoRecorrencia tipoRecorrencia) {
-	this.tipoRecorrencia = tipoRecorrencia;
-    }
+  public void setTipoRecorrencia(TipoRecorrencia tipoRecorrencia) {
+    this.tipoRecorrencia = tipoRecorrencia;
+  }
 
-    public Integer getOcorrencia() {
-	return ocorrencia;
-    }
+  public Integer getOcorrencia() {
+    return ocorrencia;
+  }
 
-    public void setOcorrencia(Integer ocorrencia) {
-	this.ocorrencia = ocorrencia;
-    }
+  public void setOcorrencia(Integer ocorrencia) {
+    this.ocorrencia = ocorrencia;
+  }
 
-    public TaskGroup getTaskGroup() {
-	return taskGroup;
-    }
+  public TaskGroup getTaskGroup() {
+    return taskGroup;
+  }
 
-    public void setTaskGroup(TaskGroup taskGroup) {
-	this.taskGroup = taskGroup;
-    }
+  public void setTaskGroup(TaskGroup taskGroup) {
+    this.taskGroup = taskGroup;
+  }
 
-    public String getTitulo() {
-	return titulo;
-    }
+  public String getTitulo() {
+    return titulo;
+  }
 
-    public void setTitulo(String titulo) {
-	this.titulo = titulo;
-    }
+  public void setTitulo(String titulo) {
+    this.titulo = titulo;
+  }
 
-    public String getDescricao() {
-	return descricao;
-    }
+  public String getDescricao() {
+    return descricao;
+  }
 
-    public void setDescricao(String descricao) {
-	this.descricao = descricao;
-    }
+  public void setDescricao(String descricao) {
+    this.descricao = descricao;
+  }
 
-    public Long getId() {
-	return id;
-    }
+  public Long getId() {
+    return id;
+  }
 
-    @Override
-    public int hashCode() {
-	return Objects.hash(id);
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(id);
+  }
 
-    public StatusTask getStatus() {
-	return status;
-    }
+  public StatusTask getStatus() {
+    return status;
+  }
 
-    public void setStatus(StatusTask status) {
-	this.status = status;
-    }
+  public void setStatus(StatusTask status) {
+    this.status = status;
+  }
 
-    public LocalDate getDataExecucao() {
-	return dataExecucao;
-    }
+  public LocalDate getDataExecucao() {
+    return dataExecucao;
+  }
 
-    public void setDataExecucao(LocalDate dataExecucao) {
-	this.dataExecucao = dataExecucao;
-    }
+  public void setDataExecucao(LocalDate dataExecucao) {
+    this.dataExecucao = dataExecucao;
+  }
 
-    @Override
-    public boolean equals(Object obj) {
-	if (this == obj)
-	    return true;
-	if (obj == null)
-	    return false;
-	if (getClass() != obj.getClass())
-	    return false;
-	Task other = (Task) obj;
-	return Objects.equals(id, other.id);
-    }
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) return true;
+    if (obj == null) return false;
+    if (getClass() != obj.getClass()) return false;
+    Task other = (Task) obj;
+    return Objects.equals(id, other.id);
+  }
 
-    @Override
-    public String toString() {
-	return "Task [id=" + id + ", titulo=" + titulo + ", descricao=" + descricao + "]";
-    }
-
+  @Override
+  public String toString() {
+    return "Task [id=" + id + ", titulo=" + titulo + ", descricao=" + descricao + "]";
+  }
 }

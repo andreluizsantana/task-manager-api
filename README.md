@@ -834,7 +834,7 @@ spring.jpa.properties.hibernate.jdbc.batch_size=50
 
 - **GitHub:** [@andreluizsantana](https://github.com/andreluizsantana)
 - **LinkedIn:** [andrelssr](https://www.linkedin.com/in/andrelssr/)
-- **Portfolio:** [andreluizsantana.vercel.app](https://andreluiz.vercel.app)
+- **Sobre mim:** [andreluiz.vercel.app](https://andreluiz.vercel.app)
 
 ---
 

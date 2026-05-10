@@ -22,10 +22,10 @@ public class TaskGroup extends TaskBase implements Serializable {
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "task_seq")
   @SequenceGenerator(
-      name = "task_seq",
-      sequenceName = "task_sequence",
+      name = "task_group_seq",
+      sequenceName = "task_group_sequence",
       initialValue = 1,
-      allocationSize = 1)
+      allocationSize = 50)
   private Long id;
 
   @Column(nullable = false, length = 50)

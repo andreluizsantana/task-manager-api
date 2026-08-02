@@ -1,5 +1,3 @@
 package com.project.taskhub.dto.response;
 
-public record LoginResponseDTO(String token) {
-
-}
+public record LoginResponseDTO(String token) {}

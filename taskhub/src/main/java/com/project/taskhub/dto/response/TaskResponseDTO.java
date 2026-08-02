@@ -1,14 +1,18 @@
 package com.project.taskhub.dto.response;
 
+import com.project.taskhub.entity.enums.StatusTask;
+import com.project.taskhub.entity.enums.TipoRecorrencia;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import com.project.taskhub.entity.TaskGroup;
-import com.project.taskhub.entity.enums.StatusTask;
-import com.project.taskhub.entity.enums.TipoRecorrencia;
-
 public record TaskResponseDTO(
-
-	Long id, String titulo, String descricao, StatusTask status, TipoRecorrencia tipoRecorrencia, LocalDateTime criadoEm, LocalDateTime atualizadoEm, Integer ocorrencia, LocalDate dataExecucao,
-	TaskGroup taskGroup) {
-}
+        Long id,
+        String title,
+        String description,
+        StatusTask status,
+        TipoRecorrencia recurrenceType,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt,
+        Integer occurrence,
+        LocalDate executionDate,
+        TaskGroupResponseDTO taskGroup) {}

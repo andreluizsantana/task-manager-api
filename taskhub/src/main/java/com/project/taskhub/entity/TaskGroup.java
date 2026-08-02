@@ -1,9 +1,6 @@
 package com.project.taskhub.entity;
 
-import java.io.Serializable;
-
 import com.project.taskhub.entity.enums.TipoRecorrencia;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -13,57 +10,58 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import java.io.Serializable;
 
 @Entity
 @Table(name = "task_group")
 public class TaskGroup extends TaskBase implements Serializable {
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "task_seq")
-  @SequenceGenerator(
-      name = "task_group_seq",
-      sequenceName = "task_group_sequence",
-      initialValue = 1,
-      allocationSize = 50)
-  private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "task_seq")
+    @SequenceGenerator(
+            name = "task_group_seq",
+            sequenceName = "task_group_sequence",
+            initialValue = 1,
+            allocationSize = 50)
+    private Long id;
 
-  @Column(nullable = false, length = 50)
-  @Enumerated(EnumType.STRING)
-  private TipoRecorrencia frequencia;
+    @Column(nullable = false, length = 50)
+    @Enumerated(EnumType.STRING)
+    private TipoRecorrencia frequency;
 
-  // número total de vezes que aquele grupo deve existir
-  @Column(name = "total_recorrencia")
-  private Integer totalRecorrencia;
+    // total number of times this group should exist
+    @Column(name = "total_recorrencia")
+    private Integer totalRecurrences;
 
-  public TaskGroup() {}
+    public TaskGroup() {}
 
-  public TaskGroup(TipoRecorrencia frequencia, Integer totalRecorrencia) {
-    this.frequencia = frequencia;
-    this.totalRecorrencia = totalRecorrencia;
-  }
+    public TaskGroup(TipoRecorrencia frequency, Integer totalRecurrences) {
+        this.frequency = frequency;
+        this.totalRecurrences = totalRecurrences;
+    }
 
-  public Long getId() {
-    return id;
-  }
+    public Long getId() {
+        return id;
+    }
 
-  public void setId(Long id) {
-    this.id = id;
-  }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-  public TipoRecorrencia getFrequencia() {
-    return frequencia;
-  }
+    public TipoRecorrencia getFrequency() {
+        return frequency;
+    }
 
-  public void setFrequencia(TipoRecorrencia frequencia) {
-    this.frequencia = frequencia;
-  }
+    public void setFrequency(TipoRecorrencia frequency) {
+        this.frequency = frequency;
+    }
 
-  public Integer getTotalRecorrencia() {
-    return totalRecorrencia;
-  }
+    public Integer getTotalRecurrences() {
+        return totalRecurrences;
+    }
 
-  public void setTotalRecorrencia(Integer totalRecorrencia) {
-    this.totalRecorrencia = totalRecorrencia;
-  }
+    public void setTotalRecurrences(Integer totalRecurrences) {
+        this.totalRecurrences = totalRecurrences;
+    }
 }

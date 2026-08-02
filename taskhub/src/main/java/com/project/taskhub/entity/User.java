@@ -1,13 +1,6 @@
 package com.project.taskhub.entity;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -15,6 +8,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 @Entity
 @Table(name = "users")
@@ -24,11 +23,16 @@ public class User extends TaskBase implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq")
-    @SequenceGenerator(name = "user_seq", sequenceName = "user_sequence", initialValue = 1, allocationSize = 1)
+    @SequenceGenerator(
+            name = "user_seq",
+            sequenceName = "user_sequence",
+            initialValue = 1,
+            allocationSize = 1)
     private Long id;
 
     @NotBlank(message = "O nome é obrigatório.")
-    private String nome;
+    @Column(name = "nome")
+    private String name;
 
     @NotBlank(message = "O email é obrigatório.")
     private String email;
@@ -36,101 +40,99 @@ public class User extends TaskBase implements UserDetails {
     @NotBlank(message = "É necessário uma definição de senha..")
     private String password;
 
-    private boolean inativo;
+    @Column(name = "inativo")
+    private boolean inactive;
 
-    public User(@NotBlank(message = "O nome é obrigatório.") String nome, @NotBlank(message = "O email é obrigatório.") String email,
-	    @NotBlank(message = "É necessário uma definição de senha..") String password, @NotBlank(message = "OStaus é obrigatório.") boolean inativo) {
-	this.nome = nome;
-	this.email = email;
-	this.password = password;
-	this.inativo = inativo;
+    public User(
+            @NotBlank(message = "O nome é obrigatório.") String name,
+            @NotBlank(message = "O email é obrigatório.") String email,
+            @NotBlank(message = "É necessário uma definição de senha..") String password,
+            @NotBlank(message = "OStaus é obrigatório.") boolean inactive) {
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.inactive = inactive;
     }
 
-    public User() {
-    }
+    public User() {}
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-	return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
 
     @Override
     public String getUsername() {
-	return this.email;
+        return this.email;
     }
 
     @Override
     public boolean isAccountNonExpired() {
-	return true;
+        return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-	return true;
+        return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-	return true;
+        return true;
     }
 
     @Override
     public boolean isEnabled() {
-	// return !this.inativo;
-	return true;
+        return !this.inactive;
     }
 
-    public String getNome() {
-	return nome;
+    public String getName() {
+        return name;
     }
 
-    public void setNome(String nome) {
-	this.nome = nome;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getEmail() {
-	return email;
+        return email;
     }
 
     public void setEmail(String email) {
-	this.email = email;
+        this.email = email;
     }
 
     public String getPassword() {
-	return password;
+        return password;
     }
 
     public void setPassword(String password) {
-	this.password = password;
+        this.password = password;
     }
 
-    public boolean isInativo() {
-	return inativo;
+    public boolean isInactive() {
+        return inactive;
     }
 
-    public void setInativo(boolean inativo) {
-	this.inativo = inativo;
+    public void setInactive(boolean inactive) {
+        this.inactive = inactive;
     }
 
     public Long getId() {
-	return id;
+        return id;
     }
 
     @Override
     public boolean equals(Object obj) {
-	if (this == obj)
-	    return true;
-	if (obj == null)
-	    return false;
-	if (getClass() != obj.getClass())
-	    return false;
-	User other = (User) obj;
-	return Objects.equals(id, other.id);
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
+        User other = (User) obj;
+        return Objects.equals(id, other.id);
     }
 
     @Override
     public String toString() {
-	return "User [id=" + id + ", nome=" + nome + ", email=" + email + ", password=" + password + ", inativo=" + inativo + "]";
+        return "User [id=" + id + ", name=" + name + ", email=" + email + "]";
     }
-
 }

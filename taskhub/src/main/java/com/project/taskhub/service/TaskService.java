@@ -1,17 +1,5 @@
 package com.project.taskhub.service;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.project.taskhub.dto.mapper.TaskMapper;
 import com.project.taskhub.dto.request.TaskRequestDTO;
 import com.project.taskhub.dto.response.TaskResponseDTO;
@@ -24,129 +12,123 @@ import com.project.taskhub.exceptions.TaskNotFoundException;
 import com.project.taskhub.exceptions.TaskRecurrenceException;
 import com.project.taskhub.repository.TaskGroupRepository;
 import com.project.taskhub.repository.TaskRepository;
-
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
 @Log4j2
 public class TaskService {
 
+    private static final int FIRST_OCCURRENCE = 1;
+    private static final int MAX_RECURRENCES = 36;
+
     private final TaskMapper taskMapper;
-    private final NotificationService notificationService;
     private final TaskRepository taskRepository;
     private final TaskGroupRepository taskGroupRepository;
 
-    public TaskService(TaskMapper taskMapper, NotificationService notificationService, TaskRepository taskRepository, TaskGroupRepository taskGroupRepository) {
-	this.taskMapper = taskMapper;
-	this.notificationService = notificationService;
-	this.taskRepository = taskRepository;
-	this.taskGroupRepository = taskGroupRepository;
+    public TaskService(
+            TaskMapper taskMapper,
+            TaskRepository taskRepository,
+            TaskGroupRepository taskGroupRepository) {
+        this.taskMapper = taskMapper;
+        this.taskRepository = taskRepository;
+        this.taskGroupRepository = taskGroupRepository;
     }
 
-    private static final int FIRST_OCCURRENCE = 1;
-
-    // Valida se é uma task recorrete
-
-    private void validarRecorrencia(TipoRecorrencia tipo, Integer totalRe) {
-	int qtdeMaximaRec = 36;
-	if (tipo != TipoRecorrencia.MENSAL || Objects.isNull(totalRe) || totalRe <= 0) {
-	    throw new TaskRecurrenceException("Dados de recorrência inválidos.");
-	}
-	if (totalRe > qtdeMaximaRec) {
-	    throw new TaskRecurrenceException("Total de recorrência não pode exceder " + qtdeMaximaRec + " tarefas.");
-	}
+    private void validateRecurrence(TipoRecorrencia type, Integer totalRecurrences) {
+        if (type != TipoRecorrencia.MENSAL || totalRecurrences == null || totalRecurrences <= 0) {
+            throw new TaskRecurrenceException("Dados de recorrência inválidos.");
+        }
+        if (totalRecurrences > MAX_RECURRENCES) {
+            throw new TaskRecurrenceException(
+                    "Total de recorrência não pode exceder " + MAX_RECURRENCES + " tarefas.");
+        }
     }
 
-    // Cria o grupo
-
-    private TaskGroup criarTaskGroup(TipoRecorrencia tipo, Integer totalRe) {
-	TaskGroup group = new TaskGroup(tipo, totalRe);
-	return taskGroupRepository.save(group);
+    private TaskGroup createTaskGroup(TipoRecorrencia type, Integer totalRecurrences) {
+        TaskGroup group = new TaskGroup(type, totalRecurrences);
+        return taskGroupRepository.save(group);
     }
 
-    // Gera as recorrencias
-
-    private List<Task> gerarTarefasRecorrentes(TaskRequestDTO taskrequestdto, TaskGroup group, Integer totalRe) {
-	List<Task> tarefas = new ArrayList<>();
-	for (int i = 0; i < totalRe; i++) {
-	    Task tarefa = taskMapper.toEntity(taskrequestdto);
-	    tarefa.setTaskGroup(group);
-	    tarefa.setOcorrencia(i + FIRST_OCCURRENCE);
-	    tarefa.setDataExecucao(LocalDate.now().plusMonths(i));
-	    tarefas.add(tarefa);
-	}
-	return tarefas;
+    private List<Task> generateRecurringTasks(
+            TaskRequestDTO dto, TaskGroup group, Integer totalRecurrences) {
+        List<Task> tasks = new ArrayList<>();
+        for (int i = 0; i < totalRecurrences; i++) {
+            Task task = taskMapper.toEntity(dto);
+            task.setTaskGroup(group);
+            task.setOccurrence(i + FIRST_OCCURRENCE);
+            task.setExecutionDate(LocalDate.now().plusMonths(i));
+            tasks.add(task);
+        }
+        return tasks;
     }
 
-    // Salvar
-
-    public TaskResponseDTO salvarTarefa(TaskRequestDTO taskrequestdto) {
-	if (taskrequestdto.tipoRecorrencia() != TipoRecorrencia.UNICA) {
-	    throw new TaskRecurrenceException("Use '/api/tasks/recurrent' para tarefas recorrentes.");
-	}
-	Task tarefa;
-	tarefa = taskMapper.toEntity(taskrequestdto);
-	tarefa = taskRepository.save(tarefa);
-	return taskMapper.toDTO(tarefa);
+    public TaskResponseDTO saveTask(TaskRequestDTO dto) {
+        if (dto.recurrenceType() != TipoRecorrencia.UNICA) {
+            throw new TaskRecurrenceException(
+                    "Use '/api/tasks/recurrent' para tarefas recorrentes.");
+        }
+        Task task = taskMapper.toEntity(dto);
+        task = taskRepository.save(task);
+        return taskMapper.toDTO(task);
     }
-
-    // Tarefa recorrente
 
     @Transactional
-    public List<TaskResponseDTO> salvarTarefaRecorrente(TaskRequestDTO taskrequestdto) {
-	validarRecorrencia(taskrequestdto.tipoRecorrencia(), taskrequestdto.totalRecorrencia());
-	TaskGroup group = criarTaskGroup(taskrequestdto.tipoRecorrencia(), taskrequestdto.totalRecorrencia());
-	List<Task> tarefas = gerarTarefasRecorrentes(taskrequestdto, group, taskrequestdto.totalRecorrencia());
-	List<Task> salvas = taskRepository.saveAll(tarefas);
+    public List<TaskResponseDTO> saveRecurringTask(TaskRequestDTO dto) {
+        validateRecurrence(dto.recurrenceType(), dto.totalRecurrences());
+        TaskGroup group = createTaskGroup(dto.recurrenceType(), dto.totalRecurrences());
+        List<Task> tasks = generateRecurringTasks(dto, group, dto.totalRecurrences());
+        List<Task> saved = taskRepository.saveAll(tasks);
 
-	return salvas.stream().map(taskMapper::toDTO).toList();
+        return saved.stream().map(taskMapper::toDTO).toList();
     }
 
-    // Atualizar status
-
-    public TaskResponseDTO atualizarDados(Long id, TaskUpdateDTO taskupdatedto) {
-	Task atualiza = taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(id));
-	taskMapper.updateEntityFromDto(taskupdatedto, atualiza);
-	Task tarefaAtualizada = taskRepository.save(atualiza);
-	return taskMapper.toDTO(tarefaAtualizada);
+    public TaskResponseDTO updateTask(Long id, TaskUpdateDTO dto) {
+        Task task = taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(id));
+        taskMapper.updateEntityFromDto(dto, task);
+        Task updated = taskRepository.save(task);
+        return taskMapper.toDTO(updated);
     }
-
-    // Listar
 
     @Transactional(readOnly = true)
-    public Page<TaskResponseDTO> listarTarefas(Pageable pageable) {
-	Page<Task> tarefas = taskRepository.findAll(pageable);
-	return tarefas.map(taskMapper::toDTO);
+    public Page<TaskResponseDTO> listTasks(Pageable pageable) {
+        Page<Task> tasks = taskRepository.findAll(pageable);
+        return tasks.map(taskMapper::toDTO);
     }
-
-    // Bucar por ID
 
     @Transactional(readOnly = true)
-    public TaskResponseDTO buscarID(Long id) {
-	Task localizaID = taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(id));
-	return taskMapper.toDTO(localizaID);
+    public TaskResponseDTO getTaskById(Long id) {
+        Task task = taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(id));
+        return taskMapper.toDTO(task);
     }
 
-    // Deletar
-
-    public void deletarTarefa(Long id) {
-	Task localizaId = taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(id));
-	taskRepository.delete(localizaId);
+    public void deleteTask(Long id) {
+        Task task = taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(id));
+        taskRepository.delete(task);
     }
 
     @Transactional
     @Scheduled(cron = "1 0 0 * * *", zone = "America/Sao_Paulo")
-    public void jobTaskVencida() {
-	log.info("Início do jobTaskVencida em {}", LocalDateTime.now());
-	LocalDate hoje = LocalDate.now();
-	List<Task> tarefasVencidas = taskRepository.findByStatusAndDataExecucaoBefore(StatusTask.PENDENTE, hoje);
-	if (tarefasVencidas.isEmpty()) {
-	    log.info("Nenhuma tarefa vencida encontrada.");
-	    return;
-	}
-	tarefasVencidas.forEach(t -> t.setStatus(StatusTask.NAO_EXECUTADA));
-	log.info("Atualizadas {} tarefas vencidas", tarefasVencidas.size());
-	log.info("Fim do jobTaskVencida em {}", LocalDateTime.now());
+    public void markOverdueTasks() {
+        log.info("Starting markOverdueTasks at {}", LocalDateTime.now());
+        LocalDate today = LocalDate.now();
+        List<Task> overdueTasks =
+                taskRepository.findByStatusAndExecutionDateBefore(StatusTask.PENDENTE, today);
+        if (overdueTasks.isEmpty()) {
+            log.info("No overdue tasks found.");
+            return;
+        }
+        overdueTasks.forEach(t -> t.setStatus(StatusTask.NAO_EXECUTADA));
+        log.info("Updated {} overdue tasks", overdueTasks.size());
+        log.info("Finished markOverdueTasks at {}", LocalDateTime.now());
     }
 }

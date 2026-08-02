@@ -9,6 +9,6 @@ public class TaskRecurrenceException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
     public TaskRecurrenceException(String message) {
-	super(message);
+        super(message);
     }
 }

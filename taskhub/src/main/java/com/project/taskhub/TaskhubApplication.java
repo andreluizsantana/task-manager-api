@@ -9,9 +9,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class TaskhubApplication {
 
-  public static void main(String[] args) {
-    SpringApplicationBuilder builder = new SpringApplicationBuilder(TaskhubApplication.class);
-    builder.bannerMode(Banner.Mode.OFF);
-    builder.run(args);
-  }
+    public static void main(String[] args) {
+        SpringApplicationBuilder builder = new SpringApplicationBuilder(TaskhubApplication.class);
+        builder.bannerMode(Banner.Mode.OFF);
+        builder.run(args);
+    }
 }

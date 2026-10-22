@@ -7,7 +7,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -31,13 +33,18 @@ public class User extends TaskBase implements UserDetails {
     private Long id;
 
     @NotBlank(message = "O nome é obrigatório.")
-    @Column(name = "nome")
+    @Size(max = 120)
+    @Column(name = "nome", nullable = false)
     private String name;
 
     @NotBlank(message = "O email é obrigatório.")
+    @Email(message = "Email inválido.")
+    @Column(nullable = false, unique = true)
     private String email;
 
-    @NotBlank(message = "É necessário uma definição de senha..")
+    @NotBlank(message = "É necessário uma definição de senha.")
+    @Size(min = 8, max = 72, message = "A senha deve conter entre 8 e 72 caracteres.")
+    @Column(nullable = false)
     private String password;
 
     @Column(name = "inativo")

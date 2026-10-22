@@ -16,5 +16,6 @@ public interface UserMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "inactive", ignore = true)
+    @Mapping(target = "authorities", ignore = true)
     User toEntity(RegisterUserRequestDTO dto);
 }

@@ -12,8 +12,10 @@ import com.project.taskhub.exceptions.TaskNotFoundException;
 import com.project.taskhub.exceptions.TaskRecurrenceException;
 import com.project.taskhub.repository.TaskGroupRepository;
 import com.project.taskhub.repository.TaskRepository;
+import com.project.taskhub.repository.UserRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
@@ -30,18 +32,22 @@ public class TaskService {
 
     private static final int FIRST_OCCURRENCE = 1;
     private static final int MAX_RECURRENCES = 36;
+    private static final ZoneId BUSINESS_ZONE = ZoneId.of("America/Sao_Paulo");
 
     private final TaskMapper taskMapper;
     private final TaskRepository taskRepository;
     private final TaskGroupRepository taskGroupRepository;
+    private final UserRepository userRepository;
 
     public TaskService(
             TaskMapper taskMapper,
             TaskRepository taskRepository,
-            TaskGroupRepository taskGroupRepository) {
+            TaskGroupRepository taskGroupRepository,
+            UserRepository userRepository) {
         this.taskMapper = taskMapper;
         this.taskRepository = taskRepository;
         this.taskGroupRepository = taskGroupRepository;
+        this.userRepository = userRepository;
     }
 
     private void validateRecurrence(TipoRecorrencia type, Integer totalRecurrences) {
@@ -60,75 +66,87 @@ public class TaskService {
     }
 
     private List<Task> generateRecurringTasks(
-            TaskRequestDTO dto, TaskGroup group, Integer totalRecurrences) {
+            TaskRequestDTO dto, TaskGroup group, Integer totalRecurrences, Long ownerId) {
+        var owner = userRepository.getReferenceById(ownerId);
         List<Task> tasks = new ArrayList<>();
         for (int i = 0; i < totalRecurrences; i++) {
             Task task = taskMapper.toEntity(dto);
             task.setTaskGroup(group);
+            task.setOwner(owner);
             task.setOccurrence(i + FIRST_OCCURRENCE);
-            task.setExecutionDate(LocalDate.now().plusMonths(i));
+            task.setExecutionDate(dto.executionDate().plusMonths(i));
             tasks.add(task);
         }
         return tasks;
     }
 
-    public TaskResponseDTO saveTask(TaskRequestDTO dto) {
+    public TaskResponseDTO saveTask(TaskRequestDTO dto, Long ownerId) {
         if (dto.recurrenceType() != TipoRecorrencia.UNICA) {
             throw new TaskRecurrenceException(
                     "Use '/api/tasks/recurrent' para tarefas recorrentes.");
         }
         Task task = taskMapper.toEntity(dto);
+        task.setOwner(userRepository.getReferenceById(ownerId));
         task = taskRepository.save(task);
         return taskMapper.toDTO(task);
     }
 
     @Transactional
-    public List<TaskResponseDTO> saveRecurringTask(TaskRequestDTO dto) {
+    public List<TaskResponseDTO> saveRecurringTask(TaskRequestDTO dto, Long ownerId) {
         validateRecurrence(dto.recurrenceType(), dto.totalRecurrences());
+        if (dto.executionDate() == null) {
+            throw new TaskRecurrenceException(
+                    "A data inicial é obrigatória para tarefas recorrentes.");
+        }
         TaskGroup group = createTaskGroup(dto.recurrenceType(), dto.totalRecurrences());
-        List<Task> tasks = generateRecurringTasks(dto, group, dto.totalRecurrences());
+        List<Task> tasks = generateRecurringTasks(dto, group, dto.totalRecurrences(), ownerId);
         List<Task> saved = taskRepository.saveAll(tasks);
 
         return saved.stream().map(taskMapper::toDTO).toList();
     }
 
-    public TaskResponseDTO updateTask(Long id, TaskUpdateDTO dto) {
-        Task task = taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(id));
+    public TaskResponseDTO updateTask(Long id, TaskUpdateDTO dto, Long ownerId) {
+        Task task = findOwnedTask(id, ownerId);
         taskMapper.updateEntityFromDto(dto, task);
         Task updated = taskRepository.save(task);
         return taskMapper.toDTO(updated);
     }
 
     @Transactional(readOnly = true)
-    public Page<TaskResponseDTO> listTasks(Pageable pageable) {
-        Page<Task> tasks = taskRepository.findAll(pageable);
+    public Page<TaskResponseDTO> listTasks(Pageable pageable, Long ownerId) {
+        Page<Task> tasks = taskRepository.findAllByOwnerId(ownerId, pageable);
         return tasks.map(taskMapper::toDTO);
     }
 
     @Transactional(readOnly = true)
-    public TaskResponseDTO getTaskById(Long id) {
-        Task task = taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(id));
+    public TaskResponseDTO getTaskById(Long id, Long ownerId) {
+        Task task = findOwnedTask(id, ownerId);
         return taskMapper.toDTO(task);
     }
 
-    public void deleteTask(Long id) {
-        Task task = taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(id));
+    public void deleteTask(Long id, Long ownerId) {
+        Task task = findOwnedTask(id, ownerId);
         taskRepository.delete(task);
+    }
+
+    private Task findOwnedTask(Long id, Long ownerId) {
+        return taskRepository
+                .findByIdAndOwnerId(id, ownerId)
+                .orElseThrow(() -> new TaskNotFoundException(id));
     }
 
     @Transactional
     @Scheduled(cron = "1 0 0 * * *", zone = "America/Sao_Paulo")
     public void markOverdueTasks() {
-        log.info("Starting markOverdueTasks at {}", LocalDateTime.now());
-        LocalDate today = LocalDate.now();
-        List<Task> overdueTasks =
-                taskRepository.findByStatusAndExecutionDateBefore(StatusTask.PENDENTE, today);
-        if (overdueTasks.isEmpty()) {
+        log.info("Starting markOverdueTasks at {}", LocalDateTime.now(BUSINESS_ZONE));
+        LocalDate today = LocalDate.now(BUSINESS_ZONE);
+        int updated =
+                taskRepository.markOverdue(StatusTask.PENDENTE, StatusTask.NAO_EXECUTADA, today);
+        if (updated == 0) {
             log.info("No overdue tasks found.");
             return;
         }
-        overdueTasks.forEach(t -> t.setStatus(StatusTask.NAO_EXECUTADA));
-        log.info("Updated {} overdue tasks", overdueTasks.size());
-        log.info("Finished markOverdueTasks at {}", LocalDateTime.now());
+        log.info("Updated {} overdue tasks", updated);
+        log.info("Finished markOverdueTasks at {}", LocalDateTime.now(BUSINESS_ZONE));
     }
 }

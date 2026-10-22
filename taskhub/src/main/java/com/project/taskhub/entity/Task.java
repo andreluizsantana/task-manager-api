@@ -62,6 +62,10 @@ public class Task extends TaskBase implements Serializable {
     @JoinColumn(name = "task_group_id", nullable = true)
     private TaskGroup taskGroup;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User owner;
+
     public Task(
             @NotBlank(message = "O título é obrigatório")
                     @Size(max = 120, message = "O título deve ter no máximo 120 caracteres")
@@ -97,6 +101,14 @@ public class Task extends TaskBase implements Serializable {
 
     public void setTaskGroup(TaskGroup taskGroup) {
         this.taskGroup = taskGroup;
+    }
+
+    public User getOwner() {
+        return owner;
+    }
+
+    public void setOwner(User owner) {
+        this.owner = owner;
     }
 
     public String getTitle() {

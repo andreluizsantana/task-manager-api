@@ -2,6 +2,8 @@ package com.project.taskhub.controller;
 
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -13,6 +15,7 @@ import com.project.taskhub.dto.response.TaskResponseDTO;
 import com.project.taskhub.dto.update.TaskUpdateDTO;
 import com.project.taskhub.entity.enums.StatusTask;
 import com.project.taskhub.entity.enums.TipoRecorrencia;
+import com.project.taskhub.security.JWTUserData;
 import com.project.taskhub.security.TokenConfiguration;
 import com.project.taskhub.service.TaskService;
 import java.time.LocalDate;
@@ -25,11 +28,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(TaskController.class)
-@AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureMockMvc
 class TaskControllerTest {
 
     @Autowired private MockMvc mockMvc;
@@ -55,9 +60,11 @@ class TaskControllerTest {
     @DisplayName("GET /api/tasks returns the paginated list")
     void listTasks_returnsPage() throws Exception {
         Page<TaskResponseDTO> page = new PageImpl<>(List.of(response));
-        when(taskService.listTasks(org.mockito.ArgumentMatchers.any())).thenReturn(page);
+        when(taskService.listTasks(
+                        org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.eq(7L)))
+                .thenReturn(page);
 
-        mockMvc.perform(get("/api/tasks"))
+        mockMvc.perform(get("/api/tasks").with(authenticatedUser()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].title").value("Title"));
     }
@@ -65,9 +72,9 @@ class TaskControllerTest {
     @Test
     @DisplayName("GET /api/tasks/{id} returns the task")
     void getTaskById_returnsTask() throws Exception {
-        when(taskService.getTaskById(1L)).thenReturn(response);
+        when(taskService.getTaskById(1L, 7L)).thenReturn(response);
 
-        mockMvc.perform(get("/api/tasks/1"))
+        mockMvc.perform(get("/api/tasks/1").with(authenticatedUser()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.title").value("Title"));
@@ -76,10 +83,14 @@ class TaskControllerTest {
     @Test
     @DisplayName("POST /api/tasks creates a task")
     void createTask_returnsCreated() throws Exception {
-        when(taskService.saveTask(org.mockito.ArgumentMatchers.any())).thenReturn(response);
+        when(taskService.saveTask(
+                        org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.eq(7L)))
+                .thenReturn(response);
 
         mockMvc.perform(
                         post("/api/tasks")
+                                .with(authenticatedUser())
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(
                                         "{\"title\":\"Title\",\"description\":\"Description\",\"recurrenceType\":\"UNICA\"}"))
@@ -92,6 +103,8 @@ class TaskControllerTest {
     void createTask_withInvalidBody_returnsBadRequest() throws Exception {
         mockMvc.perform(
                         post("/api/tasks")
+                                .with(authenticatedUser())
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(
                                         "{\"title\":\"\",\"description\":\"Description\",\"recurrenceType\":\"UNICA\"}"))
@@ -104,6 +117,8 @@ class TaskControllerTest {
     void createTask_withoutRecurrenceType_returnsBadRequest() throws Exception {
         mockMvc.perform(
                         post("/api/tasks")
+                                .with(authenticatedUser())
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("{\"title\":\"Title\",\"description\":\"Description\"}"))
                 .andExpect(status().isBadRequest());
@@ -112,11 +127,14 @@ class TaskControllerTest {
     @Test
     @DisplayName("POST /api/tasks/recurrent creates recurring tasks")
     void createRecurringTask_returnsCreated() throws Exception {
-        when(taskService.saveRecurringTask(org.mockito.ArgumentMatchers.any()))
+        when(taskService.saveRecurringTask(
+                        org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.eq(7L)))
                 .thenReturn(List.of(response));
 
         mockMvc.perform(
                         post("/api/tasks/recurrent")
+                                .with(authenticatedUser())
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(
                                         "{\"title\":\"Title\",\"description\":\"Description\",\"recurrenceType\":\"MENSAL\",\"totalRecurrences\":12}"))
@@ -129,11 +147,14 @@ class TaskControllerTest {
     void updateTask_returnsUpdated() throws Exception {
         when(taskService.updateTask(
                         org.mockito.ArgumentMatchers.eq(1L),
-                        org.mockito.ArgumentMatchers.any(TaskUpdateDTO.class)))
+                        org.mockito.ArgumentMatchers.any(TaskUpdateDTO.class),
+                        org.mockito.ArgumentMatchers.eq(7L)))
                 .thenReturn(response);
 
         mockMvc.perform(
                         put("/api/tasks/1")
+                                .with(authenticatedUser())
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("{\"title\":\"New title\"}"))
                 .andExpect(status().isOk())
@@ -143,8 +164,17 @@ class TaskControllerTest {
     @Test
     @DisplayName("DELETE /api/tasks/{id} returns no content")
     void deleteTask_returnsNoContent() throws Exception {
-        doNothing().when(taskService).deleteTask(1L);
+        doNothing().when(taskService).deleteTask(1L, 7L);
 
-        mockMvc.perform(delete("/api/tasks/1")).andExpect(status().isNoContent());
+        mockMvc.perform(delete("/api/tasks/1").with(authenticatedUser()).with(csrf()))
+                .andExpect(status().isNoContent());
+    }
+
+    private org.springframework.test.web.servlet.request.RequestPostProcessor authenticatedUser() {
+        var principal = new JWTUserData(7L, "user@example.com");
+        var auth =
+                new UsernamePasswordAuthenticationToken(
+                        principal, null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
+        return authentication(auth);
     }
 }

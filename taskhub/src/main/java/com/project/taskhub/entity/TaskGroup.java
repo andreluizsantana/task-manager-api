@@ -18,7 +18,7 @@ public class TaskGroup extends TaskBase implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "task_seq")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "task_group_seq")
     @SequenceGenerator(
             name = "task_group_seq",
             sequenceName = "task_group_sequence",

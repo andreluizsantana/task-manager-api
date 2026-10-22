@@ -10,6 +10,7 @@ import com.project.taskhub.repository.UserRepository;
 import com.project.taskhub.security.TokenConfiguration;
 import jakarta.validation.Valid;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -59,6 +60,10 @@ public class AuthenticatorController {
     public ResponseEntity<RegisterUserResponseDTO> register(
             @Valid @RequestBody RegisterUserRequestDTO dto) {
         User user = userMapper.toEntity(dto);
+        user.setEmail(dto.email().trim().toLowerCase(java.util.Locale.ROOT));
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new DataIntegrityViolationException("Email já cadastrado.");
+        }
         user.setPassword(passwordEncoder.encode(dto.password()));
         userRepository.save(user);
 

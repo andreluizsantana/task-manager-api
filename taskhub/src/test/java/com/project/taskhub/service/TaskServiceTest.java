@@ -21,6 +21,7 @@ import com.project.taskhub.exceptions.TaskNotFoundException;
 import com.project.taskhub.exceptions.TaskRecurrenceException;
 import com.project.taskhub.repository.TaskGroupRepository;
 import com.project.taskhub.repository.TaskRepository;
+import com.project.taskhub.repository.UserRepository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -40,12 +41,14 @@ class TaskServiceTest {
     @Mock private TaskMapper taskMapper;
     @Mock private TaskRepository taskRepository;
     @Mock private TaskGroupRepository taskGroupRepository;
+    @Mock private UserRepository userRepository;
 
     private TaskService taskService;
 
     @BeforeEach
     void setUp() {
-        taskService = new TaskService(taskMapper, taskRepository, taskGroupRepository);
+        taskService =
+                new TaskService(taskMapper, taskRepository, taskGroupRepository, userRepository);
     }
 
     private TaskRequestDTO singleTaskRequest() {
@@ -81,7 +84,7 @@ class TaskServiceTest {
         when(taskRepository.save(task)).thenReturn(saved);
         when(taskMapper.toDTO(saved)).thenReturn(response);
 
-        TaskResponseDTO result = taskService.saveTask(dto);
+        TaskResponseDTO result = taskService.saveTask(dto, 7L);
 
         assertThat(result).isEqualTo(response);
         verify(taskRepository).save(task);
@@ -92,7 +95,7 @@ class TaskServiceTest {
     void saveTask_whenRecurrentType_throws() {
         TaskRequestDTO dto = monthlyTaskRequest(2);
 
-        assertThatThrownBy(() -> taskService.saveTask(dto))
+        assertThatThrownBy(() -> taskService.saveTask(dto, 7L))
                 .isInstanceOf(TaskRecurrenceException.class)
                 .hasMessageContaining("/api/tasks/recurrent");
         verify(taskRepository, never()).save(any());
@@ -120,11 +123,12 @@ class TaskServiceTest {
                         null);
 
         when(taskGroupRepository.save(any(TaskGroup.class))).thenReturn(group);
+        when(userRepository.getReferenceById(7L)).thenReturn(new com.project.taskhub.entity.User());
         when(taskMapper.toEntity(dto)).thenReturn(task);
         when(taskRepository.saveAll(anyList())).thenReturn(List.of(saved, saved));
         when(taskMapper.toDTO(any(Task.class))).thenReturn(response);
 
-        List<TaskResponseDTO> result = taskService.saveRecurringTask(dto);
+        List<TaskResponseDTO> result = taskService.saveRecurringTask(dto, 7L);
 
         assertThat(result).hasSize(2);
         verify(taskGroupRepository).save(any(TaskGroup.class));
@@ -138,7 +142,7 @@ class TaskServiceTest {
                 new TaskRequestDTO(
                         "Title", "Description", TipoRecorrencia.UNICA, 2, LocalDate.now());
 
-        assertThatThrownBy(() -> taskService.saveRecurringTask(dto))
+        assertThatThrownBy(() -> taskService.saveRecurringTask(dto, 7L))
                 .isInstanceOf(TaskRecurrenceException.class);
     }
 
@@ -149,7 +153,7 @@ class TaskServiceTest {
                 new TaskRequestDTO(
                         "Title", "Description", TipoRecorrencia.MENSAL, null, LocalDate.now());
 
-        assertThatThrownBy(() -> taskService.saveRecurringTask(dto))
+        assertThatThrownBy(() -> taskService.saveRecurringTask(dto, 7L))
                 .isInstanceOf(TaskRecurrenceException.class);
     }
 
@@ -158,7 +162,7 @@ class TaskServiceTest {
     void saveRecurringTask_whenZeroTotalRecurrences_throws() {
         TaskRequestDTO dto = monthlyTaskRequest(0);
 
-        assertThatThrownBy(() -> taskService.saveRecurringTask(dto))
+        assertThatThrownBy(() -> taskService.saveRecurringTask(dto, 7L))
                 .isInstanceOf(TaskRecurrenceException.class);
     }
 
@@ -167,19 +171,19 @@ class TaskServiceTest {
     void saveRecurringTask_whenTotalRecurrencesExceedsLimit_throws() {
         TaskRequestDTO dto = monthlyTaskRequest(37);
 
-        assertThatThrownBy(() -> taskService.saveRecurringTask(dto))
+        assertThatThrownBy(() -> taskService.saveRecurringTask(dto, 7L))
                 .isInstanceOf(TaskRecurrenceException.class);
     }
 
     @Test
     @DisplayName("updateTask: task not found throws")
     void updateTask_whenNotFound_throws() {
-        when(taskRepository.findById(1L)).thenReturn(Optional.empty());
+        when(taskRepository.findByIdAndOwnerId(1L, 7L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(
                         () ->
                                 taskService.updateTask(
-                                        1L, new TaskUpdateDTO("New", null, null, null)))
+                                        1L, new TaskUpdateDTO("New", null, null, null), 7L))
                 .isInstanceOf(TaskNotFoundException.class);
     }
 
@@ -201,11 +205,11 @@ class TaskServiceTest {
                         null,
                         null);
 
-        when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
+        when(taskRepository.findByIdAndOwnerId(1L, 7L)).thenReturn(Optional.of(task));
         when(taskRepository.save(task)).thenReturn(task);
         when(taskMapper.toDTO(task)).thenReturn(response);
 
-        TaskResponseDTO result = taskService.updateTask(1L, dto);
+        TaskResponseDTO result = taskService.updateTask(1L, dto, 7L);
 
         assertThat(result).isEqualTo(response);
         verify(taskMapper).updateEntityFromDto(dto, task);
@@ -214,9 +218,9 @@ class TaskServiceTest {
     @Test
     @DisplayName("getTaskById: task not found throws")
     void getTaskById_whenNotFound_throws() {
-        when(taskRepository.findById(1L)).thenReturn(Optional.empty());
+        when(taskRepository.findByIdAndOwnerId(1L, 7L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> taskService.getTaskById(1L))
+        assertThatThrownBy(() -> taskService.getTaskById(1L, 7L))
                 .isInstanceOf(TaskNotFoundException.class);
     }
 
@@ -237,10 +241,10 @@ class TaskServiceTest {
                         null,
                         null);
 
-        when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
+        when(taskRepository.findByIdAndOwnerId(1L, 7L)).thenReturn(Optional.of(task));
         when(taskMapper.toDTO(task)).thenReturn(response);
 
-        TaskResponseDTO result = taskService.getTaskById(1L);
+        TaskResponseDTO result = taskService.getTaskById(1L, 7L);
 
         assertThat(result).isEqualTo(response);
     }
@@ -248,9 +252,9 @@ class TaskServiceTest {
     @Test
     @DisplayName("deleteTask: task not found throws")
     void deleteTask_whenNotFound_throws() {
-        when(taskRepository.findById(1L)).thenReturn(Optional.empty());
+        when(taskRepository.findByIdAndOwnerId(1L, 7L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> taskService.deleteTask(1L))
+        assertThatThrownBy(() -> taskService.deleteTask(1L, 7L))
                 .isInstanceOf(TaskNotFoundException.class);
         verify(taskRepository, never()).delete(any(Task.class));
     }
@@ -260,9 +264,9 @@ class TaskServiceTest {
     void deleteTask_whenFound_deletes() {
         Task task = new Task("Title", "Description", LocalDate.now());
 
-        when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
+        when(taskRepository.findByIdAndOwnerId(1L, 7L)).thenReturn(Optional.of(task));
 
-        taskService.deleteTask(1L);
+        taskService.deleteTask(1L, 7L);
 
         verify(taskRepository).delete(task);
     }
@@ -286,10 +290,10 @@ class TaskServiceTest {
                         null,
                         null);
 
-        when(taskRepository.findAll(pageable)).thenReturn(tasks);
+        when(taskRepository.findAllByOwnerId(7L, pageable)).thenReturn(tasks);
         when(taskMapper.toDTO(task)).thenReturn(response);
 
-        Page<TaskResponseDTO> result = taskService.listTasks(pageable);
+        Page<TaskResponseDTO> result = taskService.listTasks(pageable, 7L);
 
         assertThat(result.getContent()).hasSize(1).containsExactly(response);
     }
@@ -299,12 +303,18 @@ class TaskServiceTest {
     void markOverdueTasks_whenOverdue_updatesStatus() {
         Task overdue = new Task("Title", "Description", LocalDate.now().minusDays(1));
 
-        when(taskRepository.findByStatusAndExecutionDateBefore(
-                        eq(StatusTask.PENDENTE), any(LocalDate.class)))
-                .thenReturn(List.of(overdue));
+        when(taskRepository.markOverdue(
+                        eq(StatusTask.PENDENTE),
+                        eq(StatusTask.NAO_EXECUTADA),
+                        any(LocalDate.class)))
+                .thenReturn(1);
 
         taskService.markOverdueTasks();
 
-        assertThat(overdue.getStatus()).isEqualTo(StatusTask.NAO_EXECUTADA);
+        verify(taskRepository)
+                .markOverdue(
+                        eq(StatusTask.PENDENTE),
+                        eq(StatusTask.NAO_EXECUTADA),
+                        any(LocalDate.class));
     }
 }

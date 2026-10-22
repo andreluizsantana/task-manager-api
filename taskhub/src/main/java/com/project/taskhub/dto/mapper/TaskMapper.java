@@ -18,8 +18,14 @@ public interface TaskMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "taskGroup", ignore = true)
     @Mapping(target = "occurrence", ignore = true)
+    @Mapping(target = "owner", ignore = true)
+    @Mapping(target = "status", ignore = true)
     Task toEntity(TaskRequestDTO dto);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "recurrenceType", ignore = true)
+    @Mapping(target = "occurrence", ignore = true)
+    @Mapping(target = "taskGroup", ignore = true)
+    @Mapping(target = "owner", ignore = true)
     void updateEntityFromDto(TaskUpdateDTO dto, @MappingTarget Task task);
 }

@@ -1,6 +1,7 @@
 package com.project.taskhub.dto.update;
 
 import com.project.taskhub.entity.enums.StatusTask;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
@@ -9,4 +10,9 @@ public record TaskUpdateDTO(
         @Size(max = 1000, message = "A descrição deve ter no máximo 1000 caracteres")
                 String description,
         StatusTask status,
-        LocalDate executionDate) {}
+        LocalDate executionDate) {
+    @AssertTrue(message = "Informe ao menos um campo para atualização.")
+    public boolean isUpdateRequested() {
+        return title != null || description != null || status != null || executionDate != null;
+    }
+}
